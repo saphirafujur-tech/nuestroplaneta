@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planeta Ecosistema</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+body {
+  background: linear-gradient(135deg,#0f172a,#0f4c3a);
+  color:white;
+  font-family:sans-serif;
+  text-align:center;
+}
+.hidden {display:none;}
+button {padding:10px 20px; margin:10px; border-radius:10px; cursor:pointer;}
+.correct {background:green;}
+.wrong {background:red;}
+.card {background:#1e293b; padding:20px; border-radius:15px; margin:10px;}
+</style>
+</head>
+
+<body>
+
+<div id="intro">
+<h1>🌍 Planeta Ecosistema</h1>
+<p>Debes restaurar el equilibrio del planeta</p>
+<button onclick="startGame()">Comenzar</button>
+</div>
+
+<div id="map" class="hidden">
+<h2>Mapa del planeta</h2>
+<div id="zones"></div>
+<p id="score"></p>
+</div>
+
+<div id="zone" class="hidden">
+<h2 id="zoneTitle"></h2>
+<div id="question"></div>
+<div id="answers"></div>
+<p id="feedback"></p>
+<button onclick="nextQuestion()" id="nextBtn" class="hidden">Siguiente</button>
+</div>
+
+<div id="end" class="hidden">
+<h1>🏆 ¡Ecosistema restaurado!</h1>
+<p id="finalScore"></p>
+<button onclick="restart()">Reiniciar</button>
+</div>
+
+<script>
+
+let currentZone = 0;
+let score = 0;
+let questionIndex = 0;
+
+const zones = [
+{
+title:"🌱 Ecosistema",
+questions:[
+{
+q:"¿Qué es un ecosistema?",
+a:["Solo seres vivos","Seres vivos + medio + relaciones","Solo clima"],
+correct:1
+},
+{
+q:"¿El agua es biótico o abiótico?",
+a:["Biótico","Abiótico","Ambos"],
+correct:1
+}
+]
+},
+{
+title:"🌡️ Factores",
+questions:[
+{
+q:"¿Qué es zona óptima?",
+a:["Donde mueren","Donde mejor viven","Donde no hay vida"],
+correct:1
+},
+{
+q:"¿Qué pasa fuera del rango?",
+a:["Mejoran","Mueren","No cambia"],
+correct:1
+}
+]
+},
+{
+title:"🔗 Relaciones",
+questions:[
+{
+q:"León → cebra",
+a:["Mutualismo","Depredación","Comensalismo"],
+correct:1
+},
+{
+q:"Abeja y flor",
+a:["Parasitismo","Mutualismo","Competencia"],
+correct:1
+}
+]
+},
+{
+title:"🌿 Cadenas",
+questions:[
+{
+q:"Orden correcto",
+a:["Consumidor → productor","Productor → consumidor","Azar"],
+correct:1
+},
+{
+q:"Si desaparece un eslabón",
+a:["Nada","Se desequilibra","Mejora"],
+correct:1
+}
+]
+},
+{
+title:"🔺 Pirámides",
+questions:[
+{
+q:"¿Por qué se estrecha?",
+a:["Falta espacio","Se pierde energía","Es decorativo"],
+correct:1
+},
+{
+q:"¿Quién tiene más energía?",
+a:["Productores","Depredadores","Igual"],
+correct:0
+}
+]
+},
+{
+title:"🌍 Impacto",
+questions:[
+{
+q:"¿Qué destruye ecosistemas?",
+a:["Reforestar","Deforestar","Proteger"],
+correct:1
+},
+{
+q:"¿Solución?",
+a:["Contaminar","Reciclar","Ignorar"],
+correct:1
+}
+]
+}
+];
+
+function startGame(){
+document.getElementById("intro").classList.add("hidden");
+document.getElementById("map").classList.remove("hidden");
+renderMap();
+}
+
+function renderMap(){
+let html="";
+zones.forEach((z,i)=>{
+html+=`<div class="card">
+<h3>${z.title}</h3>
+<button onclick="openZone(${i})">Entrar</button>
+</div>`;
+});
+document.getElementById("zones").innerHTML=html;
+document.getElementById("score").innerText="Puntos: "+score;
+}
+
+function openZone(i){
+currentZone=i;
+questionIndex=0;
+document.getElementById("map").classList.add("hidden");
+document.getElementById("zone").classList.remove("hidden");
+loadQuestion();
+}
+
+function loadQuestion(){
+let q=zones[currentZone].questions[questionIndex];
+document.getElementById("zoneTitle").innerText=zones[currentZone].title;
+document.getElementById("question").innerText=q.q;
+
+let html="";
+q.a.forEach((ans,i)=>{
+html+=`<button onclick="answer(${i})">${ans}</button>`;
+});
+document.getElementById("answers").innerHTML=html;
+document.getElementById("feedback").innerText="";
+document.getElementById("nextBtn").classList.add("hidden");
+}
+
+function answer(i){
+let q=zones[currentZone].questions[questionIndex];
+
+if(i===q.correct){
+score+=10;
+document.getElementById("feedback").innerText="✅ Correcto";
+}else{
+document.getElementById("feedback").innerText="❌ Incorrecto";
+}
+
+document.getElementById("nextBtn").classList.remove("hidden");
+}
+
+function nextQuestion(){
+questionIndex++;
+if(questionIndex<zones[currentZone].questions.length){
+loadQuestion();
+}else{
+document.getElementById("zone").classList.add("hidden");
+document.getElementById("map").classList.remove("hidden");
+
+if(currentZone===zones.length-1){
+endGame();
+}else{
+renderMap();
+}
+}
+}
+
+function endGame(){
+document.getElementById("map").classList.add("hidden");
+document.getElementById("end").classList.remove("hidden");
+document.getElementById("finalScore").innerText="Puntos: "+score;
+}
+
+function restart(){
+location.reload();
+}
+
+</script>
+
+</body>
+</html>
