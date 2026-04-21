@@ -3,47 +3,43 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Planeta Ecosistema</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Fredoka+One&display=swap" rel="stylesheet">
-
 <style>
-
-/* 🌌 FONDO */
 body{
 margin:0;
-font-family:'Nunito',sans-serif;
-background: radial-gradient(circle at center,#0f172a,#020617);
+background:#020617;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+font-family:sans-serif;
 color:white;
-overflow:hidden;
 }
 
-/* 🌍 PLANETA */
+/* PLANETA */
 .planet{
-position:relative;
-width:90vw;
-height:90vh;
-margin:auto;
+width:80vmin;
+height:80vmin;
 border-radius:50%;
-background:radial-gradient(circle,#064e3b,#022c22);
+background:radial-gradient(circle,#065f46,#022c22);
+position:relative;
 box-shadow:0 0 80px #10b981;
-overflow:hidden;
 }
 
-/* 🚀 NAVE */
+/* NAVE */
 .ship{
 position:absolute;
 font-size:30px;
-transition:all 1s ease;
+transition:1s;
 }
 
 /* ZONAS */
 .zone{
 position:absolute;
-width:80px;
-height:80px;
+width:70px;
+height:70px;
 border-radius:50%;
 display:flex;
 align-items:center;
@@ -51,188 +47,164 @@ justify-content:center;
 background:#1e293b;
 border:2px solid #10b981;
 cursor:pointer;
-transition:0.3s;
 }
 
-.zone.locked{
+.locked{
 opacity:0.3;
 cursor:not-allowed;
-}
-
-.zone:hover{
-transform:scale(1.1);
 }
 
 /* MODAL */
 .modal{
 position:fixed;
-top:0;left:0;
-width:100%;height:100%;
+top:0;
+left:0;
+width:100%;
+height:100%;
 background:rgba(0,0,0,0.8);
 display:none;
-align-items:center;
 justify-content:center;
+align-items:center;
 }
 
 .card{
 background:#1e293b;
 padding:20px;
-border-radius:15px;
-max-width:500px;
-width:90%;
+border-radius:10px;
+width:300px;
 text-align:center;
 }
 
-button{
-margin-top:10px;
-padding:10px;
-border-radius:10px;
-background:#10b981;
-color:black;
-font-weight:bold;
-cursor:pointer;
-}
-
 .option{
-display:block;
-margin:5px;
 background:#334155;
+margin:5px;
 padding:8px;
 border-radius:8px;
 cursor:pointer;
 }
 
+.correct{background:#065f46;}
+.wrong{background:#7f1d1d;}
+
+button{
+margin-top:10px;
+padding:8px;
+border-radius:8px;
+background:#10b981;
+color:black;
+}
 </style>
 </head>
 
 <body>
 
-<!-- 🌍 MAPA -->
-<div class="planet" id="planet">
+<div class="planet">
 
 <div id="ship" class="ship">🚀</div>
 
-<div class="zone" style="top:20%;left:40%" onclick="enterZone(0)">🌱</div>
-<div class="zone locked" style="top:40%;left:70%" onclick="enterZone(1)">🌡️</div>
-<div class="zone locked" style="top:70%;left:60%" onclick="enterZone(2)">🔗</div>
-<div class="zone locked" style="top:75%;left:25%" onclick="enterZone(3)">🌿</div>
-<div class="zone locked" style="top:45%;left:10%" onclick="enterZone(4)">🔺</div>
-<div class="zone locked" style="top:15%;left:15%" onclick="enterZone(5)">🌍</div>
+<div class="zone" style="top:20%;left:40%" onclick="enter(0)">🌱</div>
+<div class="zone locked" style="top:40%;left:70%" onclick="enter(1)">🌡️</div>
+<div class="zone locked" style="top:70%;left:60%" onclick="enter(2)">🔗</div>
+<div class="zone locked" style="top:75%;left:25%" onclick="enter(3)">🌿</div>
+<div class="zone locked" style="top:45%;left:10%" onclick="enter(4)">🔺</div>
+<div class="zone locked" style="top:15%;left:15%" onclick="enter(5)">🌍</div>
 
 </div>
 
-<!-- 🎮 MODAL -->
 <div id="modal" class="modal">
 <div class="card">
-<h2 id="title"></h2>
-<p id="question"></p>
-<img id="img" style="max-width:100%;border-radius:10px;margin-top:10px">
+<h3 id="title"></h3>
+<p id="q"></p>
+<img id="img" style="width:100%;margin:10px 0;border-radius:8px">
+
 <div id="answers"></div>
-<textarea id="textAnswer" class="hidden w-full mt-3 p-2 rounded text-black"></textarea>
-<button id="next" onclick="next()">Siguiente</button>
+
+<textarea id="text" style="display:none;width:100%;color:black"></textarea>
+
+<button onclick="next()">Continuar</button>
 </div>
 </div>
 
 <script>
 
-let current=0;
 let zone=0;
+let current=0;
+let correct=false;
 
 const data=[
-{
-title:"Ecosistema",
-type:"test",
-img:"https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Forest_ecosystem.jpg/640px-Forest_ecosystem.jpg",
-q:"¿Qué elementos forman un ecosistema?",
-a:["Solo seres vivos","Seres vivos + medio + relaciones","Solo clima"],
-c:1
-},
-{
-title:"Factores",
-type:"test",
-img:"https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Tolerance_curve.svg/640px-Tolerance_curve.svg.png",
-q:"¿Dónde viven mejor los organismos?",
-a:["Zona óptima","Zona de muerte","Zona aleatoria"],
-c:0
-},
-{
-title:"Relaciones",
-type:"open",
-img:"https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Bee_pollinating_flower.jpg/640px-Bee_pollinating_flower.jpg",
-q:"Explica qué relación hay entre la abeja y la flor"
-},
-{
-title:"Cadenas",
-type:"test",
-img:"https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Food_chain.svg/640px-Food_chain.svg.png",
-q:"¿Cuál es el orden correcto?",
-a:["Productor → consumidor","Consumidor → productor","Azar"],
-c:0
-},
-{
-title:"Pirámide",
-type:"multi",
-img:"https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Ecological_pyramid.svg/640px-Ecological_pyramid.svg.png",
-q:"Selecciona lo correcto",
-a:["Se pierde energía","Aumenta energía","Menos organismos arriba"]
-},
-{
-title:"Impacto",
-type:"open",
-img:"https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Deforestation.jpg/640px-Deforestation.jpg",
-q:"Propón una acción para proteger el ecosistema"
-}
+{t:"Ecosistema",type:"test",img:"https://upload.wikimedia.org/wikipedia/commons/6/6b/Forest_ecosystem.jpg",q:"¿Qué es un ecosistema?",a:["Solo seres vivos","Seres vivos + medio + relaciones","Clima"],c:1},
+{t:"Factores",type:"test",img:"https://upload.wikimedia.org/wikipedia/commons/3/3f/Tolerance_curve.svg.png",q:"Zona óptima significa:",a:["Mueren","Mejor viven","Nada"],c:1},
+{t:"Relaciones",type:"open",img:"https://upload.wikimedia.org/wikipedia/commons/0/0c/Bee_pollinating_flower.jpg",q:"¿Qué relación hay entre abeja y flor?"},
+{t:"Cadenas",type:"test",img:"https://upload.wikimedia.org/wikipedia/commons/3/3e/Food_chain.svg.png",q:"Orden correcto:",a:["Productor→consumidor","Consumidor→productor","Azar"],c:0},
+{t:"Pirámide",type:"test",img:"https://upload.wikimedia.org/wikipedia/commons/3/3f/Ecological_pyramid.svg.png",q:"¿Qué pasa con la energía?",a:["Se pierde","Aumenta","Nada"],c:0},
+{t:"Impacto",type:"open",img:"https://upload.wikimedia.org/wikipedia/commons/e/e5/Deforestation.jpg",q:"Di una acción para proteger el ecosistema"}
 ];
 
-function enterZone(i){
+function enter(i){
 if(i>zone) return;
 
-moveShip(i);
+current=i;
+correct=false;
 
 let d=data[i];
 
 document.getElementById("modal").style.display="flex";
-document.getElementById("title").innerText=d.title;
-document.getElementById("question").innerText=d.q;
+document.getElementById("title").innerText=d.t;
+document.getElementById("q").innerText=d.q;
 document.getElementById("img").src=d.img;
 
-let answers="";
-document.getElementById("textAnswer").classList.add("hidden");
+let html="";
+document.getElementById("text").style.display="none";
 
 if(d.type==="test"){
-d.a.forEach((x,index)=>{
-answers+=`<div class="option" onclick="check(${index})">${x}</div>`;
-});
-}
-
-if(d.type==="multi"){
-d.a.forEach((x)=>{
-answers+=`<div class="option">${x}</div>`;
+d.a.forEach((x,ind)=>{
+html+=`<div class="option" onclick="check(${ind})">${x}</div>`;
 });
 }
 
 if(d.type==="open"){
-document.getElementById("textAnswer").classList.remove("hidden");
+document.getElementById("text").style.display="block";
 }
 
-document.getElementById("answers").innerHTML=answers;
-current=i;
+document.getElementById("answers").innerHTML=html;
 }
 
 function check(i){
-if(i===data[current].c){
+let d=data[current];
+
+if(i===d.c){
+correct=true;
 alert("✅ Correcto");
 }else{
-alert("❌ Incorrecto");
+correct=false;
+alert("❌ Intenta otra vez");
 }
 }
 
 function next(){
+
+let d=data[current];
+
+if(d.type==="test" && !correct){
+alert("Debes acertar para avanzar");
+return;
+}
+
+if(d.type==="open"){
+let txt=document.getElementById("text").value.trim();
+if(txt.length<5){
+alert("Escribe una respuesta válida");
+return;
+}
+}
+
 document.getElementById("modal").style.display="none";
 
 zone++;
 
 document.querySelectorAll(".zone")[zone]?.classList.remove("locked");
+
+moveShip(zone);
 
 if(zone>=data.length){
 alert("🏆 ¡Planeta restaurado!");
@@ -240,13 +212,10 @@ alert("🏆 ¡Planeta restaurado!");
 }
 
 function moveShip(i){
-const positions=[
-[40,20],[70,40],[60,70],[25,75],[10,45],[15,15]
-];
-
-let ship=document.getElementById("ship");
-ship.style.left=positions[i][0]+"%";
-ship.style.top=positions[i][1]+"%";
+const pos=[[40,20],[70,40],[60,70],[25,75],[10,45],[15,15]];
+let s=document.getElementById("ship");
+s.style.left=pos[i][0]+"%";
+s.style.top=pos[i][1]+"%";
 }
 
 moveShip(0);
