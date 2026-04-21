@@ -1,59 +1,138 @@
 <!doctype html>
-<html lang="es" class="h-full">
+<html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Planeta Ecosistema</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
 
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Fredoka+One&display=swap" rel="stylesheet">
 
 <style>
-body{margin:0;font-family:'Nunito',sans-serif;background:linear-gradient(135deg,#0f172a,#0f4c3a);color:white}
-.font-title{font-family:'Fredoka One',cursive}
-.hidden{display:none}
-.correct-answer{background:#065f46}
-.wrong-answer{background:#7f1d1d}
+
+/* FONDO ANIMADO */
+body {
+  margin:0;
+  font-family:'Nunito',sans-serif;
+  background: linear-gradient(135deg,#0f172a,#1e293b,#0f4c3a);
+  background-size:400% 400%;
+  animation:bgMove 15s ease infinite;
+  color:white;
+  text-align:center;
+}
+
+@keyframes bgMove {
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+
+@keyframes float {
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-10px)}
+}
+
+/* TITULO */
+.font-title{
+  font-family:'Fredoka One',cursive;
+  text-shadow:0 0 10px rgba(16,185,129,0.6);
+}
+
+/* PLANETA */
+.planet{
+  font-size:70px;
+  animation:float 3s ease-in-out infinite;
+}
+
+/* BOTONES */
+button{
+  padding:12px 20px;
+  border-radius:12px;
+  font-weight:bold;
+  cursor:pointer;
+  transition:0.3s;
+  background:linear-gradient(135deg,#10b981,#34d399);
+  color:#022c22;
+}
+
+button:hover{
+  transform:scale(1.05);
+  box-shadow:0 0 15px #34d399;
+}
+
+/* TARJETAS */
+.zone-card{
+  background:rgba(30,41,59,0.8);
+  border:1px solid rgba(52,211,153,0.2);
+  border-radius:16px;
+  padding:15px;
+  transition:0.3s;
+}
+
+.zone-card:hover{
+  transform:translateY(-5px);
+  box-shadow:0 10px 25px rgba(0,0,0,0.4);
+}
+
+/* RESPUESTAS */
+.option{
+  background:rgba(51,65,85,0.7);
+  border:2px solid #334155;
+  border-radius:12px;
+  padding:10px;
+  transition:0.2s;
+}
+
+.option:hover{
+  background:#475569;
+  transform:scale(1.03);
+}
+
+.correct{background:#065f46;}
+.wrong{background:#7f1d1d;}
+
+.hidden{display:none;}
+
 </style>
 </head>
 
 <body>
 
 <!-- INTRO -->
-<div id="intro" class="flex flex-col items-center justify-center h-screen text-center">
-<h1 class="font-title text-4xl text-emerald-300">🌍 Planeta Ecosistema</h1>
-<p class="mt-3">Misión de supervivencia</p>
-<button onclick="startGame()" class="mt-6 bg-emerald-500 px-6 py-3 rounded-xl">🚀 Iniciar</button>
+<div id="intro" class="flex flex-col justify-center items-center h-screen">
+<div class="planet">🌍</div>
+<h1 class="font-title text-4xl text-emerald-300">Planeta Ecosistema</h1>
+<p>Misión de supervivencia</p>
+<button onclick="startGame()">🚀 Iniciar</button>
 </div>
 
 <!-- MAPA -->
-<div id="map" class="hidden p-6 text-center">
+<div id="map" class="hidden p-6">
 <h2 class="font-title text-2xl text-emerald-300">Mapa del planeta</h2>
 <div id="zones" class="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6"></div>
 <p id="score"></p>
 </div>
 
 <!-- ZONA -->
-<div id="zone" class="hidden p-6 max-w-xl mx-auto text-center">
+<div id="zone" class="hidden p-6 max-w-xl mx-auto">
 <h2 id="zoneTitle" class="font-title text-xl mb-4"></h2>
 <p id="question"></p>
 <div id="answers" class="mt-4 space-y-2"></div>
 <p id="feedback" class="mt-3"></p>
-<button id="nextBtn" onclick="nextQuestion()" class="hidden mt-4 bg-emerald-500 px-5 py-2 rounded">Siguiente</button>
+<button id="nextBtn" onclick="nextQuestion()" class="hidden mt-4">Siguiente</button>
 </div>
 
 <!-- FINAL -->
-<div id="end" class="hidden flex flex-col items-center justify-center h-screen text-center">
+<div id="end" class="hidden flex flex-col justify-center items-center h-screen">
 <h1 class="text-4xl">🏆 Misión completada</h1>
 <p id="finalScore"></p>
-<button onclick="location.reload()" class="mt-4 bg-emerald-500 px-6 py-3 rounded">Reiniciar</button>
+<button onclick="location.reload()">Reiniciar</button>
 </div>
 
 <!-- SONIDOS -->
-<audio id="sound-correct" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_c7f0b0c7f3.mp3"></audio>
-<audio id="sound-wrong" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_9f6b5a7c6a.mp3"></audio>
+<audio id="ok" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_c7f0b0c7f3.mp3"></audio>
+<audio id="fail" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_9f6b5a7c6a.mp3"></audio>
 
 <script>
 
@@ -73,7 +152,7 @@ const zones=[
 {q:"Abeja-flor:",a:["Mutualismo","Parasitismo","Nada"],c:0}
 ]},
 {title:"🌿 Cadenas",q:[
-{q:"Orden correcto:",a:["Consumidor→productor","Productor→considor","Aleatorio"],c:1},
+{q:"Orden correcto:",a:["Consumidor→productor","Productor→consumidor","Aleatorio"],c:1},
 {q:"Si desaparece:",a:["Equilibrio","Desequilibrio","Nada"],c:1}
 ]},
 {title:"🔺 Pirámide",q:[
@@ -99,10 +178,10 @@ renderMap();
 function renderMap(){
 let html="";
 zones.forEach((z,i)=>{
-html+=`<div class="bg-slate-800 p-4 rounded-xl">
+html+=`<div class="zone-card">
 <h3>${z.title}</h3>
 <button onclick="openZone(${i})" ${i>state.zone?"disabled":""}>
-${i>state.zone?"🔒":"Entrar"}
+${i>state.zone?"🔒 Bloqueado":"Entrar"}
 </button>
 </div>`;
 });
@@ -126,7 +205,7 @@ document.getElementById("question").innerText=q.q;
 
 let html="";
 q.a.forEach((ans,i)=>{
-html+=`<button onclick="answer(${i})" class="block w-full bg-slate-700 p-2 rounded">${ans}</button>`;
+html+=`<button class="option" onclick="answer(${i})">${ans}</button>`;
 });
 document.getElementById("answers").innerHTML=html;
 document.getElementById("feedback").innerText="";
@@ -139,10 +218,10 @@ let q=zones[state.zoneIndex].q[state.question];
 if(i===q.c){
 state.score+=10;
 document.getElementById("feedback").innerText="✅ Correcto";
-document.getElementById("sound-correct").play();
+document.getElementById("ok").play();
 }else{
 document.getElementById("feedback").innerText="❌ Incorrecto";
-document.getElementById("sound-wrong").play();
+document.getElementById("fail").play();
 }
 
 document.getElementById("nextBtn").classList.remove("hidden");
@@ -150,10 +229,12 @@ document.getElementById("nextBtn").classList.remove("hidden");
 
 function nextQuestion(){
 state.question++;
+
 if(state.question<zones[state.zoneIndex].q.length){
 loadQ();
 }else{
 if(state.zoneIndex===state.zone) state.zone++;
+
 show("map");
 
 if(state.zone===zones.length){
