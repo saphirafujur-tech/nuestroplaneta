@@ -3,181 +3,197 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Planeta Ecosistema</title>
+<title>Planeta Ecosistema PRO</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 
 <style>
-body {
-  background: linear-gradient(135deg,#0f172a,#0f4c3a);
-  color:white;
+body{
+  margin:0;
   font-family:sans-serif;
+  background:linear-gradient(135deg,#0f172a,#064e3b);
+  color:white;
   text-align:center;
 }
-.hidden {display:none;}
-button {padding:10px 20px; margin:10px; border-radius:10px; cursor:pointer;}
-.correct {background:green;}
-.wrong {background:red;}
-.card {background:#1e293b; padding:20px; border-radius:15px; margin:10px;}
+
+.screen{display:none;}
+.active{display:flex;}
+
+.zone{
+  border:2px solid #334155;
+  border-radius:15px;
+  padding:15px;
+  margin:10px;
+  transition:0.3s;
+}
+
+.zone.locked{
+  opacity:0.3;
+}
+
+.zone:hover{
+  transform:scale(1.05);
+}
+
+button{
+  padding:10px 20px;
+  border-radius:10px;
+  margin:5px;
+  cursor:pointer;
+}
+
+.correct{background:#16a34a;}
+.wrong{background:#dc2626;}
+
+.progress{
+  height:10px;
+  background:#1e293b;
+  border-radius:10px;
+  overflow:hidden;
+  margin:20px;
+}
+
+.bar{
+  height:100%;
+  background:#10b981;
+  width:0%;
+  transition:0.5s;
+}
 </style>
 </head>
 
 <body>
 
-<div id="intro">
+<!-- INTRO -->
+<div id="intro" class="screen active flex flex-col justify-center items-center h-screen">
 <h1>🌍 Planeta Ecosistema</h1>
-<p>Debes restaurar el equilibrio del planeta</p>
-<button onclick="startGame()">Comenzar</button>
+<p>Misión: restaurar el equilibrio</p>
+<button onclick="startGame()">🚀 Iniciar</button>
 </div>
 
-<div id="map" class="hidden">
-<h2>Mapa del planeta</h2>
+<!-- MAPA -->
+<div id="map" class="screen flex-col items-center">
+<h2>🗺️ Mapa del planeta</h2>
+
+<div class="progress">
+<div id="bar" class="bar"></div>
+</div>
+
 <div id="zones"></div>
 <p id="score"></p>
 </div>
 
-<div id="zone" class="hidden">
+<!-- ZONA -->
+<div id="zone" class="screen flex-col items-center">
 <h2 id="zoneTitle"></h2>
-<div id="question"></div>
+<p id="question"></p>
 <div id="answers"></div>
 <p id="feedback"></p>
-<button onclick="nextQuestion()" id="nextBtn" class="hidden">Siguiente</button>
+<button id="nextBtn" onclick="nextQuestion()" style="display:none;">Siguiente</button>
 </div>
 
-<div id="end" class="hidden">
-<h1>🏆 ¡Ecosistema restaurado!</h1>
+<!-- FINAL -->
+<div id="end" class="screen flex-col justify-center items-center h-screen">
+<h1>🏆 MISIÓN COMPLETADA</h1>
 <p id="finalScore"></p>
 <button onclick="restart()">Reiniciar</button>
 </div>
 
 <script>
 
-let currentZone = 0;
-let score = 0;
-let questionIndex = 0;
+let state={
+zone:0,
+score:0,
+progress:0,
+question:0
+};
 
-const zones = [
+const zones=[
 {
 title:"🌱 Ecosistema",
 questions:[
-{
-q:"¿Qué es un ecosistema?",
-a:["Solo seres vivos","Seres vivos + medio + relaciones","Solo clima"],
-correct:1
-},
-{
-q:"¿El agua es biótico o abiótico?",
-a:["Biótico","Abiótico","Ambos"],
-correct:1
-}
+{q:"¿Qué es un ecosistema?",a:["Solo seres vivos","Seres vivos + medio","Clima"],c:1},
+{q:"Agua →",a:["Biótico","Abiótico","Ambos"],c:1}
 ]
 },
 {
 title:"🌡️ Factores",
 questions:[
-{
-q:"¿Qué es zona óptima?",
-a:["Donde mueren","Donde mejor viven","Donde no hay vida"],
-correct:1
-},
-{
-q:"¿Qué pasa fuera del rango?",
-a:["Mejoran","Mueren","No cambia"],
-correct:1
-}
+{q:"Zona óptima",a:["Mueren","Mejor viven","No hay vida"],c:1},
+{q:"Fuera del rango",a:["Mueren","Mejoran","Nada"],c:0}
 ]
 },
 {
 title:"🔗 Relaciones",
 questions:[
-{
-q:"León → cebra",
-a:["Mutualismo","Depredación","Comensalismo"],
-correct:1
-},
-{
-q:"Abeja y flor",
-a:["Parasitismo","Mutualismo","Competencia"],
-correct:1
-}
+{q:"León → cebra",a:["Mutualismo","Depredación","Nada"],c:1},
+{q:"Abeja + flor",a:["Mutualismo","Parasitismo","Competencia"],c:0}
 ]
 },
 {
 title:"🌿 Cadenas",
 questions:[
-{
-q:"Orden correcto",
-a:["Consumidor → productor","Productor → consumidor","Azar"],
-correct:1
-},
-{
-q:"Si desaparece un eslabón",
-a:["Nada","Se desequilibra","Mejora"],
-correct:1
-}
+{q:"Orden correcto",a:["Consumidor→productor","Productor→consumidor","Aleatorio"],c:1},
+{q:"Si desaparece",a:["Equilibrio","Desequilibrio","Nada"],c:1}
 ]
 },
 {
 title:"🔺 Pirámides",
 questions:[
-{
-q:"¿Por qué se estrecha?",
-a:["Falta espacio","Se pierde energía","Es decorativo"],
-correct:1
-},
-{
-q:"¿Quién tiene más energía?",
-a:["Productores","Depredadores","Igual"],
-correct:0
-}
+{q:"Se pierde energía",a:["Sí","No","A veces"],c:0},
+{q:"Más energía",a:["Productores","Depredadores","Igual"],c:0}
 ]
 },
 {
 title:"🌍 Impacto",
 questions:[
-{
-q:"¿Qué destruye ecosistemas?",
-a:["Reforestar","Deforestar","Proteger"],
-correct:1
-},
-{
-q:"¿Solución?",
-a:["Contaminar","Reciclar","Ignorar"],
-correct:1
-}
+{q:"Daño ecosistema",a:["Deforestar","Reforestar","Cuidar"],c:0},
+{q:"Solución",a:["Reciclar","Contaminar","Nada"],c:0}
 ]
 }
 ];
 
+function show(id){
+document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+document.getElementById(id).classList.add("active");
+}
+
 function startGame(){
-document.getElementById("intro").classList.add("hidden");
-document.getElementById("map").classList.remove("hidden");
+show("map");
 renderMap();
 }
 
 function renderMap(){
 let html="";
 zones.forEach((z,i)=>{
-html+=`<div class="card">
+let locked=i>state.zone;
+html+=`
+<div class="zone ${locked?"locked":""}">
 <h3>${z.title}</h3>
-<button onclick="openZone(${i})">Entrar</button>
-</div>`;
+<button ${locked?"disabled":""} onclick="openZone(${i})">
+${locked?"🔒 Bloqueado":"Entrar"}
+</button>
+</div>
+`;
 });
 document.getElementById("zones").innerHTML=html;
-document.getElementById("score").innerText="Puntos: "+score;
+document.getElementById("score").innerText="Puntos: "+state.score;
+
+document.getElementById("bar").style.width=(state.zone/zones.length*100)+"%";
 }
 
 function openZone(i){
-currentZone=i;
-questionIndex=0;
-document.getElementById("map").classList.add("hidden");
-document.getElementById("zone").classList.remove("hidden");
+state.question=0;
+state.zoneIndex=i;
+show("zone");
 loadQuestion();
 }
 
 function loadQuestion(){
-let q=zones[currentZone].questions[questionIndex];
-document.getElementById("zoneTitle").innerText=zones[currentZone].title;
+let z=zones[state.zoneIndex];
+let q=z.questions[state.question];
+
+document.getElementById("zoneTitle").innerText=z.title;
 document.getElementById("question").innerText=q.q;
 
 let html="";
@@ -186,31 +202,34 @@ html+=`<button onclick="answer(${i})">${ans}</button>`;
 });
 document.getElementById("answers").innerHTML=html;
 document.getElementById("feedback").innerText="";
-document.getElementById("nextBtn").classList.add("hidden");
+document.getElementById("nextBtn").style.display="none";
 }
 
 function answer(i){
-let q=zones[currentZone].questions[questionIndex];
+let q=zones[state.zoneIndex].questions[state.question];
 
-if(i===q.correct){
-score+=10;
+if(i===q.c){
+state.score+=10;
 document.getElementById("feedback").innerText="✅ Correcto";
 }else{
 document.getElementById("feedback").innerText="❌ Incorrecto";
 }
 
-document.getElementById("nextBtn").classList.remove("hidden");
+document.getElementById("nextBtn").style.display="block";
 }
 
 function nextQuestion(){
-questionIndex++;
-if(questionIndex<zones[currentZone].questions.length){
+state.question++;
+
+if(state.question<zones[state.zoneIndex].questions.length){
 loadQuestion();
 }else{
-document.getElementById("zone").classList.add("hidden");
-document.getElementById("map").classList.remove("hidden");
+if(state.zoneIndex===state.zone){
+state.zone++;
+}
+show("map");
 
-if(currentZone===zones.length-1){
+if(state.zone===zones.length){
 endGame();
 }else{
 renderMap();
@@ -219,9 +238,8 @@ renderMap();
 }
 
 function endGame(){
-document.getElementById("map").classList.add("hidden");
-document.getElementById("end").classList.remove("hidden");
-document.getElementById("finalScore").innerText="Puntos: "+score;
+show("end");
+document.getElementById("finalScore").innerText="Puntos: "+state.score;
 }
 
 function restart(){
