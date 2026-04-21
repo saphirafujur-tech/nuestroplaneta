@@ -1,161 +1,94 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" class="h-full">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Planeta Ecosistema PRO</title>
+<title>Planeta Ecosistema</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Fredoka+One&display=swap" rel="stylesheet">
 
 <style>
-body{
-  margin:0;
-  font-family:sans-serif;
-  background:linear-gradient(135deg,#0f172a,#064e3b);
-  color:white;
-  text-align:center;
-}
-
-.screen{display:none;}
-.active{display:flex;}
-
-.zone{
-  border:2px solid #334155;
-  border-radius:15px;
-  padding:15px;
-  margin:10px;
-  transition:0.3s;
-}
-
-.zone.locked{
-  opacity:0.3;
-}
-
-.zone:hover{
-  transform:scale(1.05);
-}
-
-button{
-  padding:10px 20px;
-  border-radius:10px;
-  margin:5px;
-  cursor:pointer;
-}
-
-.correct{background:#16a34a;}
-.wrong{background:#dc2626;}
-
-.progress{
-  height:10px;
-  background:#1e293b;
-  border-radius:10px;
-  overflow:hidden;
-  margin:20px;
-}
-
-.bar{
-  height:100%;
-  background:#10b981;
-  width:0%;
-  transition:0.5s;
-}
+body{margin:0;font-family:'Nunito',sans-serif;background:linear-gradient(135deg,#0f172a,#0f4c3a);color:white}
+.font-title{font-family:'Fredoka One',cursive}
+.hidden{display:none}
+.correct-answer{background:#065f46}
+.wrong-answer{background:#7f1d1d}
 </style>
 </head>
 
 <body>
 
 <!-- INTRO -->
-<div id="intro" class="screen active flex flex-col justify-center items-center h-screen">
-<h1>🌍 Planeta Ecosistema</h1>
-<p>Misión: restaurar el equilibrio</p>
-<button onclick="startGame()">🚀 Iniciar</button>
+<div id="intro" class="flex flex-col items-center justify-center h-screen text-center">
+<h1 class="font-title text-4xl text-emerald-300">🌍 Planeta Ecosistema</h1>
+<p class="mt-3">Misión de supervivencia</p>
+<button onclick="startGame()" class="mt-6 bg-emerald-500 px-6 py-3 rounded-xl">🚀 Iniciar</button>
 </div>
 
 <!-- MAPA -->
-<div id="map" class="screen flex-col items-center">
-<h2>🗺️ Mapa del planeta</h2>
-
-<div class="progress">
-<div id="bar" class="bar"></div>
-</div>
-
-<div id="zones"></div>
+<div id="map" class="hidden p-6 text-center">
+<h2 class="font-title text-2xl text-emerald-300">Mapa del planeta</h2>
+<div id="zones" class="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6"></div>
 <p id="score"></p>
 </div>
 
 <!-- ZONA -->
-<div id="zone" class="screen flex-col items-center">
-<h2 id="zoneTitle"></h2>
+<div id="zone" class="hidden p-6 max-w-xl mx-auto text-center">
+<h2 id="zoneTitle" class="font-title text-xl mb-4"></h2>
 <p id="question"></p>
-<div id="answers"></div>
-<p id="feedback"></p>
-<button id="nextBtn" onclick="nextQuestion()" style="display:none;">Siguiente</button>
+<div id="answers" class="mt-4 space-y-2"></div>
+<p id="feedback" class="mt-3"></p>
+<button id="nextBtn" onclick="nextQuestion()" class="hidden mt-4 bg-emerald-500 px-5 py-2 rounded">Siguiente</button>
 </div>
 
 <!-- FINAL -->
-<div id="end" class="screen flex-col justify-center items-center h-screen">
-<h1>🏆 MISIÓN COMPLETADA</h1>
+<div id="end" class="hidden flex flex-col items-center justify-center h-screen text-center">
+<h1 class="text-4xl">🏆 Misión completada</h1>
 <p id="finalScore"></p>
-<button onclick="restart()">Reiniciar</button>
+<button onclick="location.reload()" class="mt-4 bg-emerald-500 px-6 py-3 rounded">Reiniciar</button>
 </div>
+
+<!-- SONIDOS -->
+<audio id="sound-correct" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_c7f0b0c7f3.mp3"></audio>
+<audio id="sound-wrong" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_9f6b5a7c6a.mp3"></audio>
 
 <script>
 
-let state={
-zone:0,
-score:0,
-progress:0,
-question:0
-};
+let state={zone:0,score:0,question:0};
 
 const zones=[
-{
-title:"🌱 Ecosistema",
-questions:[
-{q:"¿Qué es un ecosistema?",a:["Solo seres vivos","Seres vivos + medio","Clima"],c:1},
-{q:"Agua →",a:["Biótico","Abiótico","Ambos"],c:1}
-]
-},
-{
-title:"🌡️ Factores",
-questions:[
-{q:"Zona óptima",a:["Mueren","Mejor viven","No hay vida"],c:1},
-{q:"Fuera del rango",a:["Mueren","Mejoran","Nada"],c:0}
-]
-},
-{
-title:"🔗 Relaciones",
-questions:[
-{q:"León → cebra",a:["Mutualismo","Depredación","Nada"],c:1},
-{q:"Abeja + flor",a:["Mutualismo","Parasitismo","Competencia"],c:0}
-]
-},
-{
-title:"🌿 Cadenas",
-questions:[
-{q:"Orden correcto",a:["Consumidor→productor","Productor→consumidor","Aleatorio"],c:1},
-{q:"Si desaparece",a:["Equilibrio","Desequilibrio","Nada"],c:1}
-]
-},
-{
-title:"🔺 Pirámides",
-questions:[
-{q:"Se pierde energía",a:["Sí","No","A veces"],c:0},
-{q:"Más energía",a:["Productores","Depredadores","Igual"],c:0}
-]
-},
-{
-title:"🌍 Impacto",
-questions:[
-{q:"Daño ecosistema",a:["Deforestar","Reforestar","Cuidar"],c:0},
-{q:"Solución",a:["Reciclar","Contaminar","Nada"],c:0}
-]
-}
+{title:"🌱 Ecosistema",q:[
+{q:"¿Qué es un ecosistema?",a:["Solo seres vivos","Seres vivos + medio + relaciones","Clima"],c:1},
+{q:"El agua es:",a:["Biótico","Abiótico","Ambos"],c:1}
+]},
+{title:"🌡️ Factores",q:[
+{q:"Zona óptima:",a:["Mueren","Mejor viven","Nada"],c:1},
+{q:"Fuera del rango:",a:["Mueren","Mejoran","Nada"],c:0}
+]},
+{title:"🔗 Relaciones",q:[
+{q:"León-cabra:",a:["Mutualismo","Depredación","Nada"],c:1},
+{q:"Abeja-flor:",a:["Mutualismo","Parasitismo","Nada"],c:0}
+]},
+{title:"🌿 Cadenas",q:[
+{q:"Orden correcto:",a:["Consumidor→productor","Productor→considor","Aleatorio"],c:1},
+{q:"Si desaparece:",a:["Equilibrio","Desequilibrio","Nada"],c:1}
+]},
+{title:"🔺 Pirámide",q:[
+{q:"Energía:",a:["Se pierde","Se crea","No cambia"],c:0},
+{q:"Más energía:",a:["Productores","Depredadores","Igual"],c:0}
+]},
+{title:"🌍 Impacto",q:[
+{q:"Daña ecosistema:",a:["Deforestar","Proteger","Cuidar"],c:0},
+{q:"Solución:",a:["Reciclar","Contaminar","Nada"],c:0}
+]}
 ];
 
 function show(id){
-document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
-document.getElementById(id).classList.add("active");
+["intro","map","zone","end"].forEach(x=>document.getElementById(x).classList.add("hidden"));
+document.getElementById(id).classList.remove("hidden");
 }
 
 function startGame(){
@@ -166,84 +99,70 @@ renderMap();
 function renderMap(){
 let html="";
 zones.forEach((z,i)=>{
-let locked=i>state.zone;
-html+=`
-<div class="zone ${locked?"locked":""}">
+html+=`<div class="bg-slate-800 p-4 rounded-xl">
 <h3>${z.title}</h3>
-<button ${locked?"disabled":""} onclick="openZone(${i})">
-${locked?"🔒 Bloqueado":"Entrar"}
+<button onclick="openZone(${i})" ${i>state.zone?"disabled":""}>
+${i>state.zone?"🔒":"Entrar"}
 </button>
-</div>
-`;
+</div>`;
 });
 document.getElementById("zones").innerHTML=html;
 document.getElementById("score").innerText="Puntos: "+state.score;
-
-document.getElementById("bar").style.width=(state.zone/zones.length*100)+"%";
 }
 
 function openZone(i){
-state.question=0;
 state.zoneIndex=i;
+state.question=0;
 show("zone");
-loadQuestion();
+loadQ();
 }
 
-function loadQuestion(){
+function loadQ(){
 let z=zones[state.zoneIndex];
-let q=z.questions[state.question];
+let q=z.q[state.question];
 
 document.getElementById("zoneTitle").innerText=z.title;
 document.getElementById("question").innerText=q.q;
 
 let html="";
 q.a.forEach((ans,i)=>{
-html+=`<button onclick="answer(${i})">${ans}</button>`;
+html+=`<button onclick="answer(${i})" class="block w-full bg-slate-700 p-2 rounded">${ans}</button>`;
 });
 document.getElementById("answers").innerHTML=html;
 document.getElementById("feedback").innerText="";
-document.getElementById("nextBtn").style.display="none";
+document.getElementById("nextBtn").classList.add("hidden");
 }
 
 function answer(i){
-let q=zones[state.zoneIndex].questions[state.question];
+let q=zones[state.zoneIndex].q[state.question];
 
 if(i===q.c){
 state.score+=10;
 document.getElementById("feedback").innerText="✅ Correcto";
+document.getElementById("sound-correct").play();
 }else{
 document.getElementById("feedback").innerText="❌ Incorrecto";
+document.getElementById("sound-wrong").play();
 }
 
-document.getElementById("nextBtn").style.display="block";
+document.getElementById("nextBtn").classList.remove("hidden");
 }
 
 function nextQuestion(){
 state.question++;
-
-if(state.question<zones[state.zoneIndex].questions.length){
-loadQuestion();
+if(state.question<zones[state.zoneIndex].q.length){
+loadQ();
 }else{
-if(state.zoneIndex===state.zone){
-state.zone++;
-}
+if(state.zoneIndex===state.zone) state.zone++;
 show("map");
 
 if(state.zone===zones.length){
-endGame();
+show("end");
+document.getElementById("finalScore").innerText="Puntuación: "+state.score;
 }else{
 renderMap();
 }
 }
-}
-
-function endGame(){
-show("end");
-document.getElementById("finalScore").innerText="Puntos: "+state.score;
-}
-
-function restart(){
-location.reload();
 }
 
 </script>
