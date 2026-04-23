@@ -3,28 +3,28 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Planeta Ecosistema PRO</title>
+<title>Planeta Ecosistema</title>
 
 <style>
 body{
   margin:0;
-  font-family: 'Segoe UI', sans-serif;
+  font-family:sans-serif;
   background:#020617;
   color:white;
   overflow:hidden;
 }
 
-/* ===== ESTRELLAS ===== */
-.stars{
+/* fondo */
+body::before{
+  content:"";
   position:fixed;
   width:100%;
   height:100%;
-  background:url("https://www.transparenttextures.com/patterns/stardust.png"),
-             radial-gradient(circle at center, #0b1f3a, #020617);
+  background:radial-gradient(circle,#0b1f3a,#020617);
   z-index:-1;
 }
 
-/* ===== PANTALLAS ===== */
+/* pantallas */
 .screen{
   display:none;
   height:100vh;
@@ -33,56 +33,47 @@ body{
   flex-direction:column;
   text-align:center;
 }
-.active{ display:flex; }
+.active{display:flex}
 
-/* ===== PLANETA ===== */
+/* planeta */
 .earth{
-  width:260px;
-  height:260px;
+  width:220px;
+  height:220px;
   border-radius:50%;
   background:url("https://eoimages.gsfc.nasa.gov/images/imagerecords/57000/57730/land_ocean_ice_2048.png");
   background-size:cover;
-  animation:rotateEarth 40s linear infinite;
-  box-shadow: inset -40px -40px 60px rgba(0,0,0,0.6);
+  animation:spin 40s linear infinite;
+}
+@keyframes spin{
+  from{background-position:0}
+  to{background-position:1000px}
 }
 
-@keyframes rotateEarth{
-  from{background-position:0 0;}
-  to{background-position:1000px 0;}
-}
-
-/* ===== TEXTOS ===== */
-.title{ font-size:42px; color:#6ee7b7; }
-.subtitle{ color:#34d399; }
-
-/* ===== BOTÓN ===== */
+/* botón */
 .btn{
-  padding:15px 30px;
-  border:none;
-  border-radius:12px;
+  margin-top:20px;
+  padding:12px 25px;
   background:#10b981;
-  color:#022c22;
-  font-weight:bold;
+  border:none;
+  border-radius:10px;
   cursor:pointer;
-  box-shadow:0 0 20px #10b981;
-  transition:0.3s;
+  font-weight:bold;
 }
-.btn:hover{ transform:scale(1.1); }
 
-/* ===== MAPA ===== */
+/* mapa */
 .map{
-  width:420px;
-  height:420px;
+  width:350px;
+  height:350px;
   border-radius:50%;
-  background:radial-gradient(circle,#065f46,#022c22);
+  background:#065f46;
   position:relative;
-  box-shadow:0 0 60px #10b981;
 }
 
+/* zonas */
 .zone{
   position:absolute;
-  width:70px;
-  height:70px;
+  width:60px;
+  height:60px;
   border-radius:50%;
   background:#064e3b;
   display:flex;
@@ -90,209 +81,123 @@ body{
   align-items:center;
   cursor:pointer;
   border:2px solid #10b981;
-  transition:0.3s;
 }
-.zone:hover{ transform:scale(1.1); }
 
 .locked{
   opacity:0.3;
   pointer-events:none;
 }
 
-/* ===== NAVE ===== */
-.ship{
-  position:absolute;
-  font-size:28px;
-  transition:all 1s ease;
-}
-
-/* ===== PREGUNTAS ===== */
+/* pregunta */
 .box{
   background:#0f172a;
   padding:20px;
   border-radius:10px;
-  max-width:500px;
 }
 
 .option{
   margin:10px;
-  padding:12px;
+  padding:10px;
   background:#1e293b;
   border-radius:8px;
   cursor:pointer;
-  transition:0.3s;
 }
-.option:hover{ background:#334155; }
-
-/* ===== PROGRESO ===== */
-.progress{
-  position:absolute;
-  top:20px;
-  width:200px;
-  height:10px;
-  background:#1e293b;
-  border-radius:10px;
-}
-.bar{
-  height:100%;
-  width:0%;
-  background:#10b981;
-  border-radius:10px;
-  transition:0.5s;
-}
+.option:hover{background:#334155}
 </style>
 </head>
 
 <body>
 
-<div class="stars"></div>
-
 <!-- INTRO -->
 <div id="intro" class="screen active">
 <div class="earth"></div>
-<h1 class="title">Planeta Ecosistema</h1>
-<p class="subtitle">Misión de Supervivencia</p>
-<button class="btn" onclick="startGame()">🚀 Iniciar misión</button>
+<h1>🌍 Planeta Ecosistema</h1>
+<button class="btn" onclick="start()">🚀 Empezar</button>
 </div>
 
 <!-- MAPA -->
-<div id="mapScreen" class="screen">
+<div id="map" class="screen">
+<div class="map">
 
-<div class="progress"><div class="bar" id="bar"></div></div>
-
-<div class="map" id="map">
-
-<div class="zone" style="top:20px; left:180px" onclick="openZone(0)">🌱</div>
-<div class="zone locked" id="z1" style="top:100px; left:320px" onclick="openZone(1)">🌡️</div>
-<div class="zone locked" id="z2" style="top:280px; left:260px" onclick="openZone(2)">🔗</div>
-<div class="zone locked" id="z3" style="top:280px; left:80px" onclick="openZone(3)">🌿</div>
-<div class="zone locked" id="z4" style="top:100px; left:40px" onclick="openZone(4)">🔺</div>
-<div class="zone locked" id="z5" style="top:180px; left:180px" onclick="openZone(5)">🌍</div>
-
-<div class="ship" id="ship">🚀</div>
+<div class="zone" onclick="openQ(0)" style="top:10px;left:140px">🌱</div>
+<div id="z1" class="zone locked" onclick="openQ(1)" style="top:80px;left:260px">🌡️</div>
+<div id="z2" class="zone locked" onclick="openQ(2)" style="top:220px;left:220px">🔗</div>
+<div id="z3" class="zone locked" onclick="openQ(3)" style="top:220px;left:60px">🌿</div>
+<div id="z4" class="zone locked" onclick="openQ(4)" style="top:80px;left:20px">🔺</div>
+<div id="z5" class="zone locked" onclick="openQ(5)" style="top:150px;left:140px">🌍</div>
 
 </div>
-
 </div>
 
-<!-- GAME -->
+<!-- PREGUNTA -->
 <div id="game" class="screen">
 <div class="box">
-<h3 id="q"></h3>
-<div id="opts"></div>
+<h3 id="question"></h3>
+<div id="answers"></div>
+<button class="btn" onclick="back()">⬅ Volver al planeta</button>
 </div>
 </div>
 
 <script>
 
-/* ===== SONIDOS (SEGUROS) ===== */
-const okSound = new Audio();
-okSound.src = "https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3";
-
-const failSound = new Audio();
-failSound.src = "https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-946.mp3";
-
-/* ===== DATOS ===== */
 let current = 0;
-let progress = 0;
 
 const data = [
-{q:"¿Qué es un ecosistema?",o:["Solo seres vivos","Seres vivos + medio + relaciones","Clima"],c:1},
-{q:"¿Factor abiótico?",o:["Planta","Agua","Animal"],c:1},
-{q:"Relación depredador?",o:["Mutualismo","Depredación","Comensalismo"],c:1},
-{q:"Inicio cadena?",o:["Consumidor","Productor","Descomponedor"],c:1},
-{q:"Energía?",o:["Aumenta","Disminuye","Igual"],c:1},
-{q:"Impacto humano?",o:["Reforestar","Deforestar","Proteger"],c:1}
+{q:"¿Qué es un ecosistema?",a:["Solo seres vivos","Seres vivos + medio + relaciones","Clima"],c:1},
+{q:"¿Factor abiótico?",a:["Planta","Agua","Animal"],c:1},
+{q:"Relación depredador?",a:["Mutualismo","Depredación","Comensalismo"],c:1},
+{q:"Inicio cadena?",a:["Consumidor","Productor","Descomponedor"],c:1},
+{q:"Energía?",a:["Aumenta","Disminuye","Igual"],c:1},
+{q:"Impacto humano?",a:["Reforestar","Deforestar","Proteger"],c:1}
 ];
-
-/* ===== FUNCIONES ===== */
-
-function startGame(){
-  show("mapScreen");
-  moveShip(0);
-}
 
 function show(id){
   document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
   document.getElementById(id).classList.add("active");
 }
 
-function openZone(n){
+function start(){
+  show("map");
+}
+
+function openQ(n){
   current = n;
-  loadQ();
+  load();
   show("game");
 }
 
-function loadQ(){
+function load(){
   let q = data[current];
-  document.getElementById("q").innerText = q.q;
+  document.getElementById("question").innerText = q.q;
 
   let html="";
-  q.o.forEach((opt,i)=>{
-    html+=`<div class="option" data-i="${i}">${opt}</div>`;
+  q.a.forEach((op,i)=>{
+    html += `<div class="option" onclick="check(${i})">${op}</div>`;
   });
 
-  document.getElementById("opts").innerHTML = html;
-
-  /* 🔥 EVENTOS SEGUROS */
-  document.querySelectorAll(".option").forEach(el=>{
-    el.onclick = () => check(parseInt(el.dataset.i));
-  });
+  document.getElementById("answers").innerHTML = html;
 }
 
 function check(i){
   let q = data[current];
 
   if(i === q.c){
+    alert("✅ ¡Correcto!");
 
-    okSound.currentTime = 0;
-    okSound.play();
+    // desbloquear siguiente
+    if(current < 5){
+      document.getElementById("z"+current).classList.remove("locked");
+    }
 
-    document.querySelectorAll(".option")[i].style.background = "#16a34a";
+    show("map");
 
-    progress++;
-    updateBar();
-    unlock();
-
-    setTimeout(()=>{
-      moveShip(current+1);
-      show("mapScreen");
-    },700);
-
-  } else {
-
-    failSound.currentTime = 0;
-    failSound.play();
-
-    document.querySelectorAll(".option")[i].style.background = "#dc2626";
-
-    setTimeout(()=>{
-      alert("❌ Intenta otra vez");
-    },200);
+  }else{
+    alert("❌ Incorrecto, inténtalo otra vez");
   }
 }
 
-function unlock(){
-  if(current < 5){
-    document.getElementById("z"+current).classList.remove("locked");
-  }
-}
-
-function updateBar(){
-  document.getElementById("bar").style.width = (progress/6*100)+"%";
-}
-
-function moveShip(n){
-  const zones = document.querySelectorAll(".zone");
-  const ship = document.getElementById("ship");
-
-  if(zones[n]){
-    let rect = zones[n].getBoundingClientRect();
-    let mapRect = document.getElementById("map").getBoundingClientRect();
-
-    ship.style.left = (rect.left - mapRect.left + 20) + "px";
-    ship.style.top = (rect.top - mapRect.top - 10) + "px";
-  }
+function back(){
+  show("map");
 }
 
 </script>
