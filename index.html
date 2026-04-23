@@ -1,281 +1,307 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<script src="https://cdn.tailwindcss.com"></script>
+<title>Planeta Ecosistema</title>
 
 <style>
 
-/* 🌌 FONDO ESPACIAL */
+/* ================== RESET ================== */
 body{
-margin:0;
-height:100vh;
-display:flex;
-justify-content:center;
-align-items:center;
-background:radial-gradient(circle,#020617,#000);
-overflow:hidden;
-font-family:sans-serif;
-color:white;
+  margin:0;
+  font-family: Arial, sans-serif;
+  background:#020617;
+  color:white;
+  overflow:hidden;
 }
 
-/* ✨ ESTRELLAS */
-body::before{
-content:"";
-position:absolute;
-width:200%;
-height:200%;
-background:url("https://www.transparenttextures.com/patterns/stardust.png");
-animation:stars 60s linear infinite;
-opacity:0.3;
+/* ================== ESTRELLAS ================== */
+.stars{
+  position:fixed;
+  width:100%;
+  height:100%;
+  background:url("https://www.transparenttextures.com/patterns/stardust.png"),
+             radial-gradient(circle at center, #0b1f3a, #020617);
+  z-index:-1;
 }
 
-@keyframes stars{
-0%{transform:translateY(0)}
-100%{transform:translateY(-1000px)}
+/* ================== PANTALLAS ================== */
+.screen{
+  display:none;
+  height:100vh;
+  justify-content:center;
+  align-items:center;
+  flex-direction:column;
+  text-align:center;
 }
 
-/* 🌍 PLANETA */
-.planet{
-width:80vmin;
-height:80vmin;
-border-radius:50%;
-position:relative;
-background:
-radial-gradient(circle at 30% 30%,#34d399,#065f46 60%,#022c22);
-box-shadow:0 0 100px #10b981;
-overflow:hidden;
+.active{
+  display:flex;
 }
 
-/* ROTACIÓN */
-.planet::before{
-content:"";
-position:absolute;
-width:200%;
-height:200%;
-background:radial-gradient(circle,#10b981,#065f46);
-opacity:0.2;
-animation:rotate 30s linear infinite;
+/* ================== PLANETA INTRO ================== */
+.earth-container{
+  position:relative;
+  margin-top:40px;
 }
 
-@keyframes rotate{
-0%{transform:rotate(0deg)}
-100%{transform:rotate(360deg)}
+.earth{
+  width:260px;
+  height:260px;
+  border-radius:50%;
+  background-image:url("https://eoimages.gsfc.nasa.gov/images/imagerecords/57000/57730/land_ocean_ice_2048.png");
+  background-size:cover;
+  animation:rotateEarth 40s linear infinite;
+  box-shadow: inset -40px -40px 60px rgba(0,0,0,0.6);
 }
 
-/* 🚀 NAVE */
-.ship{
-position:absolute;
-font-size:32px;
-transition:1s ease;
-z-index:10;
+@keyframes rotateEarth{
+  from{background-position:0 0;}
+  to{background-position:1000px 0;}
 }
 
-/* ZONAS */
+.glow{
+  position:absolute;
+  width:300px;
+  height:300px;
+  border-radius:50%;
+  background:radial-gradient(circle, rgba(0,255,150,0.4), transparent);
+  top:-20px;
+  left:-20px;
+  filter:blur(25px);
+}
+
+/* ================== TEXTOS ================== */
+.title{
+  font-size:42px;
+  color:#6ee7b7;
+  margin-top:20px;
+}
+
+.subtitle{
+  color:#34d399;
+}
+
+.intro-box{
+  max-width:500px;
+  background:rgba(15,23,42,0.7);
+  padding:20px;
+  border-radius:15px;
+  margin:20px;
+}
+
+/* ================== BOTÓN ================== */
+.btn{
+  padding:15px 30px;
+  border:none;
+  border-radius:12px;
+  background:#10b981;
+  color:#022c22;
+  font-weight:bold;
+  cursor:pointer;
+  box-shadow:0 0 15px #10b981;
+  transition:0.3s;
+}
+
+.btn:hover{
+  transform:scale(1.1);
+}
+
+/* ================== MAPA ================== */
+.planet-map{
+  width:400px;
+  height:400px;
+  border-radius:50%;
+  background:radial-gradient(circle, #065f46, #022c22);
+  position:relative;
+  box-shadow:0 0 60px #10b981;
+}
+
 .zone{
-position:absolute;
-width:70px;
-height:70px;
-border-radius:50%;
-display:flex;
-align-items:center;
-justify-content:center;
-background:#1e293b;
-border:2px solid #10b981;
-cursor:pointer;
-transition:0.3s;
-}
-
-.zone:hover{
-transform:scale(1.1);
-box-shadow:0 0 15px #10b981;
+  position:absolute;
+  width:70px;
+  height:70px;
+  border-radius:50%;
+  background:#064e3b;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  cursor:pointer;
+  border:2px solid #10b981;
 }
 
 .locked{
-opacity:0.3;
-cursor:not-allowed;
+  opacity:0.3;
+  pointer-events:none;
 }
 
-/* MODAL */
-.modal{
-position:fixed;
-top:0;left:0;
-width:100%;height:100%;
-background:rgba(0,0,0,0.85);
-display:none;
-justify-content:center;
-align-items:center;
+/* ================== PREGUNTAS ================== */
+.question-box{
+  background:#0f172a;
+  padding:20px;
+  border-radius:10px;
+  max-width:500px;
 }
 
-.card{
-background:#1e293b;
-padding:20px;
-border-radius:15px;
-width:320px;
-text-align:center;
-box-shadow:0 0 30px black;
-}
-
-/* RESPUESTAS */
 .option{
-background:#334155;
-margin:6px;
-padding:8px;
-border-radius:8px;
-cursor:pointer;
-transition:0.2s;
+  margin:10px;
+  padding:10px;
+  background:#1e293b;
+  border-radius:8px;
+  cursor:pointer;
 }
 
-.option:hover{
-background:#475569;
-}
-
-.correct{background:#065f46;}
-.wrong{background:#7f1d1d;}
-
-button{
-margin-top:10px;
-padding:8px;
-border-radius:8px;
-background:#10b981;
-color:black;
-font-weight:bold;
-cursor:pointer;
-}
+.correct{ background:green; }
+.wrong{ background:red; }
 
 </style>
 </head>
 
 <body>
 
-<!-- 🌍 PLANETA -->
-<div class="planet">
+<div class="stars"></div>
 
-<div id="ship" class="ship">🚀</div>
+<!-- ================= INTRO ================= -->
+<div id="intro" class="screen active">
 
-<div class="zone" style="top:20%;left:40%" onclick="enter(0)">🌱</div>
-<div class="zone locked" style="top:40%;left:70%" onclick="enter(1)">🌡️</div>
-<div class="zone locked" style="top:70%;left:60%" onclick="enter(2)">🔗</div>
-<div class="zone locked" style="top:75%;left:25%" onclick="enter(3)">🌿</div>
-<div class="zone locked" style="top:45%;left:10%" onclick="enter(4)">🔺</div>
-<div class="zone locked" style="top:15%;left:15%" onclick="enter(5)">🌍</div>
+<div class="earth-container">
+  <div class="earth"></div>
+  <div class="glow"></div>
+</div>
+
+<h1 class="title">Planeta Ecosistema</h1>
+<p class="subtitle">Misión de Supervivencia</p>
+
+<div class="intro-box">
+Habéis llegado a un planeta sin equilibrio.<br>
+Debéis reconstruir su ecosistema superando desafíos.
+</div>
+
+<button class="btn" onclick="startGame()">🚀 Iniciar misión</button>
 
 </div>
 
-<!-- 🎮 MODAL -->
-<div id="modal" class="modal">
-<div class="card">
+<!-- ================= MAPA ================= -->
+<div id="map" class="screen">
 
-<h3 id="title"></h3>
-<p id="q"></p>
+<h2>🌍 Mapa del planeta</h2>
 
-<img id="img" style="width:100%;border-radius:10px;margin:10px 0">
+<div class="planet-map">
 
-<div id="answers"></div>
-
-<textarea id="text" style="display:none;width:100%;color:black"></textarea>
-
-<button onclick="next()">Continuar</button>
+<div class="zone" style="top:20px; left:160px" onclick="openZone(0)">1</div>
+<div class="zone locked" id="z1" style="top:120px; left:300px" onclick="openZone(1)">2</div>
+<div class="zone locked" id="z2" style="top:280px; left:250px" onclick="openZone(2)">3</div>
+<div class="zone locked" id="z3" style="top:280px; left:80px" onclick="openZone(3)">4</div>
+<div class="zone locked" id="z4" style="top:120px; left:40px" onclick="openZone(4)">5</div>
+<div class="zone locked" id="z5" style="top:180px; left:160px" onclick="openZone(5)">6</div>
 
 </div>
+
+</div>
+
+<!-- ================= PREGUNTAS ================= -->
+<div id="game" class="screen">
+
+<div class="question-box">
+<h3 id="question"></h3>
+
+<div id="options"></div>
+
+</div>
+
 </div>
 
 <script>
 
-let zone=0;
-let current=0;
-let correct=false;
+/* ================= DATOS ================= */
+let currentZone = 0;
 
-const data=[
-{t:"Ecosistema",type:"test",img:"https://upload.wikimedia.org/wikipedia/commons/6/6b/Forest_ecosystem.jpg",q:"¿Qué es un ecosistema?",a:["Solo seres vivos","Seres vivos + medio + relaciones","Clima"],c:1},
-{t:"Factores",type:"test",img:"https://upload.wikimedia.org/wikipedia/commons/3/3f/Tolerance_curve.svg.png",q:"Zona óptima:",a:["Mueren","Mejor viven","Nada"],c:1},
-{t:"Relaciones",type:"open",img:"https://upload.wikimedia.org/wikipedia/commons/0/0c/Bee_pollinating_flower.jpg",q:"Explica la relación abeja-flor"},
-{t:"Cadenas",type:"test",img:"https://upload.wikimedia.org/wikipedia/commons/3/3e/Food_chain.svg.png",q:"Orden correcto:",a:["Productor→consumidor","Consumidor→productor","Azar"],c:0},
-{t:"Pirámide",type:"test",img:"https://upload.wikimedia.org/wikipedia/commons/3/3f/Ecological_pyramid.svg.png",q:"Energía:",a:["Se pierde","Aumenta","Nada"],c:0},
-{t:"Impacto",type:"open",img:"https://upload.wikimedia.org/wikipedia/commons/e/e5/Deforestation.jpg",q:"Di una acción para proteger el ecosistema"}
+const questions = [
+{
+q:"¿Qué es un ecosistema?",
+options:[
+"Solo seres vivos",
+"Seres vivos + medio + relaciones",
+"Solo clima"
+],
+correct:1
+},
+{
+q:"¿Factor abiótico?",
+options:["Planta","Agua","Animal"],
+correct:1
+},
+{
+q:"Relación depredador-presa?",
+options:["Mutualismo","Depredación","Comensalismo"],
+correct:1
+},
+{
+q:"Inicio cadena trófica?",
+options:["Consumidor","Productor","Descomponedor"],
+correct:1
+},
+{
+q:"Energía en pirámide?",
+options:["Aumenta","Disminuye","Igual"],
+correct:1
+},
+{
+q:"Impacto humano negativo?",
+options:["Reforestar","Deforestar","Proteger"],
+correct:1
+}
 ];
 
-function enter(i){
-if(i>zone) return;
+/* ================= FUNCIONES ================= */
 
-current=i;
-correct=false;
-
-let d=data[i];
-
-document.getElementById("modal").style.display="flex";
-document.getElementById("title").innerText=d.t;
-document.getElementById("q").innerText=d.q;
-document.getElementById("img").src=d.img;
-
-let html="";
-document.getElementById("text").style.display="none";
-
-if(d.type==="test"){
-d.a.forEach((x,ind)=>{
-html+=`<div class="option" onclick="check(${ind})">${x}</div>`;
-});
+function startGame(){
+  show("map");
 }
 
-if(d.type==="open"){
-document.getElementById("text").style.display="block";
+function show(screen){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById(screen).classList.add("active");
 }
 
-document.getElementById("answers").innerHTML=html;
+function openZone(n){
+  currentZone = n;
+  loadQuestion();
+  show("game");
 }
 
-function check(i){
-let d=data[current];
+function loadQuestion(){
+  let q = questions[currentZone];
+  document.getElementById("question").innerText = q.q;
 
-if(i===d.c){
-correct=true;
-alert("✅ Correcto");
-}else{
-correct=false;
-alert("❌ Intenta otra vez");
-}
-}
+  let optionsHTML = "";
+  q.options.forEach((opt,i)=>{
+    optionsHTML += `<div class="option" onclick="checkAnswer(${i})">${opt}</div>`;
+  });
 
-function next(){
-
-let d=data[current];
-
-if(d.type==="test" && !correct){
-alert("Debes acertar para avanzar");
-return;
+  document.getElementById("options").innerHTML = optionsHTML;
 }
 
-if(d.type==="open"){
-let txt=document.getElementById("text").value.trim();
-if(txt.length<5){
-alert("Escribe una respuesta válida");
-return;
-}
-}
+function checkAnswer(i){
+  let q = questions[currentZone];
 
-document.getElementById("modal").style.display="none";
+  if(i === q.correct){
+    alert("✅ Correcto");
+    unlockNext();
+  } else {
+    alert("❌ Intenta otra vez");
+    return; // 🔥 IMPORTANTE: no avanza si falla
+  }
 
-zone++;
-
-document.querySelectorAll(".zone")[zone]?.classList.remove("locked");
-
-moveShip(zone);
-
-if(zone>=data.length){
-alert("🏆 ¡Planeta restaurado!");
-}
+  show("map");
 }
 
-function moveShip(i){
-const pos=[[40,20],[70,40],[60,70],[25,75],[10,45],[15,15]];
-let s=document.getElementById("ship");
-s.style.left=pos[i][0]+"%";
-s.style.top=pos[i][1]+"%";
+function unlockNext(){
+  if(currentZone < 5){
+    document.getElementById("z"+currentZone).classList.remove("locked");
+  }
 }
-
-moveShip(0);
 
 </script>
 
