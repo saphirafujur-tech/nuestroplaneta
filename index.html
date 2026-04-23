@@ -7,33 +7,21 @@
 <title>Planeta Ecosistema</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Fredoka+One&display=swap" rel="stylesheet">
 
 <style>
 body{
-font-family:'Nunito',sans-serif;
+font-family:sans-serif;
 background:linear-gradient(135deg,#0f172a,#1e293b,#065f46);
-background-size:400% 400%;
-animation:bg 15s infinite;
 color:white;
 }
 
-@keyframes bg{
-0%,100%{background-position:0%}
-50%{background-position:100%}
-}
-
-.font-title{font-family:'Fredoka One',cursive}
-
 .btn{
 background:#10b981;
-padding:12px 20px;
-border-radius:12px;
-font-weight:bold;
+padding:10px 16px;
+border-radius:10px;
 cursor:pointer;
-transition:0.2s;
+margin-top:10px;
 }
-.btn:hover{transform:scale(1.05)}
 
 .correct{background:#047857 !important}
 .wrong{background:#991b1b !important}
@@ -41,253 +29,189 @@ transition:0.2s;
 </style>
 </head>
 
-<body class="h-screen flex flex-col">
+<body class="p-4">
 
 <!-- INTRO -->
-<div id="intro" class="flex flex-col items-center justify-center h-full text-center">
-<div class="text-7xl mb-4">🌍</div>
-
-<h1 class="font-title text-5xl text-emerald-300 mb-4">
-Planeta Ecosistema
-</h1>
-
-<p class="mb-6 max-w-md">
-Restaurad el equilibrio del planeta superando desafíos científicos
-</p>
-
-<button onclick="startGame()" class="btn">🚀 Iniciar misión</button>
+<div id="intro">
+<h1 class="text-3xl mb-4">🌍 Planeta Ecosistema</h1>
+<button onclick="startGame()" class="btn">Iniciar</button>
 </div>
 
 <!-- MAPA -->
-<div id="map" class="hidden p-6 text-center">
-<h2 class="font-title text-3xl mb-4 text-emerald-300">Mapa del planeta</h2>
-
-<p id="progress" class="mb-4"></p>
-
-<div id="zones" class="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-3xl mx-auto"></div>
+<div id="map" class="hidden">
+<h2 class="text-xl mb-4">Mapa</h2>
+<div id="zones"></div>
+<button onclick="copiarRespuestas()" class="btn">📋 Copiar respuestas</button>
 </div>
 
 <!-- ZONA -->
-<div id="zone" class="hidden p-6 max-w-xl mx-auto">
+<div id="zone" class="hidden">
 
-<button onclick="backMap()" class="mb-4 text-slate-400">⬅ Volver</button>
+<h2 id="zoneTitle"></h2>
 
-<h2 id="zoneTitle" class="font-title text-2xl mb-4"></h2>
+<!-- IMAGEN -->
+<img id="zoneImg" class="my-3 rounded-xl max-h-40">
 
 <!-- PREGUNTA 1 -->
-<div id="q1">
-<p id="q1text" class="mb-3 font-bold"></p>
-<div id="q1options" class="space-y-2"></div>
-<div id="q1feedback" class="mt-3"></div>
-</div>
+<p id="q1"></p>
+<div id="opts"></div>
+<p id="fb1"></p>
 
 <!-- PREGUNTA 2 -->
-<div id="q2" class="hidden mt-6">
-<p id="q2text" class="mb-2 font-bold"></p>
-<textarea id="q2input" class="w-full p-2 rounded text-black"></textarea>
-<button onclick="answerQ2()" class="btn mt-2">Responder</button>
-<div id="q2feedback" class="mt-3"></div>
+<div id="q2block" class="hidden">
+<p id="q2"></p>
+<textarea id="input"></textarea>
+<button onclick="answerQ2()" class="btn">Responder</button>
+<p id="fb2"></p>
 </div>
 
-<button id="finishBtn" onclick="finishZone()" class="btn mt-6 hidden">
-Volver al mapa
+<button id="finish" onclick="finishZone()" class="btn hidden">
+Volver
 </button>
-
-</div>
-
-<!-- FINAL -->
-<div id="final" class="hidden flex flex-col items-center justify-center h-full text-center">
-
-<div class="text-6xl mb-4">🏆</div>
-
-<h1 class="font-title text-4xl text-yellow-300 mb-4">
-¡Ecosistema restaurado!
-</h1>
-
-<p id="finalScore" class="mb-6"></p>
-
-<button onclick="location.reload()" class="btn">Reiniciar</button>
 
 </div>
 
 <script>
 
-// ===== ESTADO =====
 let state={
 current:-1,
 completed:[],
-score:0
+answers:{}
 }
 
-// ===== DATOS =====
+// DATOS
 const zones=[
 {
 title:"Ecosistema",
+img:"https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/Ecosystem.jpg/640px-Ecosystem.jpg",
 q1:"¿Qué es un ecosistema?",
 options:["Seres vivos","Seres vivos + medio + relaciones","Clima"],
 correct:1,
-feedback:"Incluye seres vivos, medio y relaciones.",
-q2:"¿El agua es biótica o abiótica? ¿Por qué?",
-answer:"Abiótica porque no tiene vida."
+q2:"¿El agua es biótica o abiótica?"
 },
 {
-title:"Factores",
-q1:"Zona óptima es...",
-options:["Donde mueren","Donde viven mejor","Temperatura máxima"],
-correct:1,
-feedback:"Es donde mejor viven.",
-q2:"¿Qué pasa fuera del rango de tolerancia?",
-answer:"No sobreviven."
-},
-{
-title:"Relaciones",
-q1:"Depredación es...",
-options:["Ambos ganan","Uno come otro","Ninguno"],
-correct:1,
-feedback:"Uno se alimenta del otro.",
-q2:"Ejemplo de mutualismo",
-answer:"Abeja y flor"
-},
-{
-title:"Cadena",
-q1:"Orden correcto",
-options:["Consumidor→Productor","Productor→Consumidor","Descomponedor→Productor"],
-correct:1,
-feedback:"Empieza en productores.",
-q2:"¿Qué pasa si desaparece un eslabón?",
-answer:"Se rompe el equilibrio"
-},
-{
-title:"Pirámide",
-q1:"La energía...",
-options:["Aumenta","Disminuye","Igual"],
-correct:1,
-feedback:"Se pierde energía.",
-q2:"¿Por qué hay menos depredadores?",
-answer:"Porque hay menos energía"
-},
-{
-title:"Impacto",
-q1:"¿Qué daña ecosistemas?",
-options:["Reservas","Deforestación","Reforestación"],
-correct:1,
-feedback:"Destruye hábitats.",
-q2:"Acción para proteger",
-answer:"Reciclar, plantar, etc."
+title:"Cadena trófica",
+img:"https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/Food_chain.svg/640px-Food_chain.svg.png",
+q1:"¿Quién produce energía?",
+options:["Productor","Consumidor","Descomponedor"],
+correct:0,
+q2:"¿Qué pasa si desaparece un eslabón?"
 }
 ]
 
-// ===== NAVEGACIÓN =====
+// NAVEGACIÓN
 function show(s){
-["intro","map","zone","final"].forEach(id=>{
+["intro","map","zone"].forEach(id=>{
 document.getElementById(id).classList.add("hidden")
 })
 document.getElementById(s).classList.remove("hidden")
 }
 
-// ===== INICIO =====
+// INICIO
 function startGame(){
 renderMap()
 show("map")
 }
 
-// ===== MAPA =====
+// MAPA
 function renderMap(){
 let html=""
 zones.forEach((z,i)=>{
 let unlocked=i===0||state.completed.includes(i-1)
-let done=state.completed.includes(i)
 
 html+=`
-<div onclick="${unlocked&&!done?`enterZone(${i})`:''}"
-class="p-4 rounded-xl border ${done?'bg-emerald-800':'bg-slate-800'} ${!unlocked?'opacity-30':''}">
+<div onclick="${unlocked?`enterZone(${i})`:''}"
+style="margin:10px;padding:10px;border:1px solid white;cursor:pointer">
 🌍 ${z.title}
 </div>`
 })
 document.getElementById("zones").innerHTML=html
-document.getElementById("progress").innerText=
-"Progreso: "+state.completed.length+" / "+zones.length
 }
 
-// ===== ENTRAR =====
+// ENTRAR ZONA
 function enterZone(i){
+
+// 🔥 RESET TOTAL (CLAVE)
+document.getElementById("opts").innerHTML=""
+document.getElementById("fb1").innerHTML=""
+document.getElementById("fb2").innerHTML=""
+document.getElementById("input").value=""
+document.getElementById("q2block").classList.add("hidden")
+document.getElementById("finish").classList.add("hidden")
+
 state.current=i
 let z=zones[i]
 
 document.getElementById("zoneTitle").innerText=z.title
-document.getElementById("q1text").innerText=z.q1
+document.getElementById("zoneImg").src=z.img
+document.getElementById("q1").innerText=z.q1
 
-let opts=""
 z.options.forEach((o,idx)=>{
-opts+=`<div onclick="answerQ1(${idx})"
-class="p-2 bg-slate-700 rounded cursor-pointer">${o}</div>`
+let btn=document.createElement("div")
+btn.innerText=o
+btn.className="btn"
+btn.onclick=()=>answerQ1(idx)
+document.getElementById("opts").appendChild(btn)
 })
-document.getElementById("q1options").innerHTML=opts
-
-document.getElementById("q1feedback").innerHTML=""
-document.getElementById("q2").classList.add("hidden")
-document.getElementById("finishBtn").classList.add("hidden")
 
 show("zone")
 }
 
-// ===== RESPUESTA 1 =====
+// RESPUESTA 1
 function answerQ1(i){
 let z=zones[state.current]
-let buttons=document.querySelectorAll("#q1options div")
+let opts=document.querySelectorAll("#opts div")
 
-buttons.forEach((b,idx)=>{
+opts.forEach((b,idx)=>{
 if(idx===z.correct)b.classList.add("correct")
 if(idx===i && idx!==z.correct)b.classList.add("wrong")
 })
 
 if(i===z.correct){
-state.score++
-document.getElementById("q1feedback").innerHTML="✅ "+z.feedback
+document.getElementById("fb1").innerText="✅ Correcto"
 
-setTimeout(()=>{
-document.getElementById("q2").classList.remove("hidden")
-document.getElementById("q2text").innerText=z.q2
-},800)
+state.answers["Zona "+(state.current+1)+" - Test"]=
+z.options[i]
+
+// desbloquear siguiente
+document.getElementById("q2block").classList.remove("hidden")
+document.getElementById("q2").innerText=z.q2
 
 }else{
-document.getElementById("q1feedback").innerHTML="❌ "+z.feedback
+document.getElementById("fb1").innerText="❌ Incorrecto"
 }
 }
 
-// ===== RESPUESTA 2 =====
+// RESPUESTA 2
 function answerQ2(){
-let z=zones[state.current]
+let txt=document.getElementById("input").value
 
-state.score++
-document.getElementById("q2feedback").innerHTML=
-"✅ Respuesta modelo: "+z.answer
+state.answers["Zona "+(state.current+1)+" - Abierta"]=txt
 
-document.getElementById("finishBtn").classList.remove("hidden")
+document.getElementById("fb2").innerText="Respuesta guardada"
+
+document.getElementById("finish").classList.remove("hidden")
 }
 
-// ===== FINALIZAR ZONA =====
+// FINALIZAR
 function finishZone(){
 state.completed.push(state.current)
-
-if(state.completed.length===zones.length){
-endGame()
-}else{
 renderMap()
 show("map")
 }
+
+// COPIAR RESPUESTAS
+function copiarRespuestas(){
+
+let texto="RESPUESTAS ALUMNO\n\n"
+
+for(let k in state.answers){
+texto+=k+":\n"+state.answers[k]+"\n\n"
 }
 
-// ===== FINAL =====
-function endGame(){
-document.getElementById("finalScore").innerText=
-"Puntuación: "+state.score+" / "+(zones.length*2)
-show("final")
-}
+navigator.clipboard.writeText(texto)
 
-// ===== VOLVER =====
-function backMap(){
-show("map")
+alert("Copiado 👍")
 }
 
 </script>
