@@ -6,8 +6,6 @@
 <title>Planeta Ecosistema PRO</title>
 
 <style>
-
-/* ====== BASE ====== */
 body{
   margin:0;
   font-family: 'Segoe UI', sans-serif;
@@ -16,7 +14,7 @@ body{
   overflow:hidden;
 }
 
-/* ====== ESTRELLAS ====== */
+/* ===== ESTRELLAS ===== */
 .stars{
   position:fixed;
   width:100%;
@@ -26,7 +24,7 @@ body{
   z-index:-1;
 }
 
-/* ====== PANTALLAS ====== */
+/* ===== PANTALLAS ===== */
 .screen{
   display:none;
   height:100vh;
@@ -35,10 +33,9 @@ body{
   flex-direction:column;
   text-align:center;
 }
-
 .active{ display:flex; }
 
-/* ====== PLANETA ====== */
+/* ===== PLANETA ===== */
 .earth{
   width:260px;
   height:260px;
@@ -54,10 +51,11 @@ body{
   to{background-position:1000px 0;}
 }
 
-/* ====== TEXTO ====== */
+/* ===== TEXTOS ===== */
 .title{ font-size:42px; color:#6ee7b7; }
 .subtitle{ color:#34d399; }
 
+/* ===== BOTÓN ===== */
 .btn{
   padding:15px 30px;
   border:none;
@@ -67,9 +65,11 @@ body{
   font-weight:bold;
   cursor:pointer;
   box-shadow:0 0 20px #10b981;
+  transition:0.3s;
 }
+.btn:hover{ transform:scale(1.1); }
 
-/* ====== MAPA ====== */
+/* ===== MAPA ===== */
 .map{
   width:420px;
   height:420px;
@@ -92,7 +92,6 @@ body{
   border:2px solid #10b981;
   transition:0.3s;
 }
-
 .zone:hover{ transform:scale(1.1); }
 
 .locked{
@@ -100,14 +99,14 @@ body{
   pointer-events:none;
 }
 
-/* ====== NAVE ====== */
+/* ===== NAVE ===== */
 .ship{
   position:absolute;
   font-size:28px;
   transition:all 1s ease;
 }
 
-/* ====== PREGUNTAS ====== */
+/* ===== PREGUNTAS ===== */
 .box{
   background:#0f172a;
   padding:20px;
@@ -121,11 +120,11 @@ body{
   background:#1e293b;
   border-radius:8px;
   cursor:pointer;
+  transition:0.3s;
 }
-
 .option:hover{ background:#334155; }
 
-/* ====== PROGRESO ====== */
+/* ===== PROGRESO ===== */
 .progress{
   position:absolute;
   top:20px;
@@ -134,7 +133,6 @@ body{
   background:#1e293b;
   border-radius:10px;
 }
-
 .bar{
   height:100%;
   width:0%;
@@ -142,7 +140,6 @@ body{
   border-radius:10px;
   transition:0.5s;
 }
-
 </style>
 </head>
 
@@ -188,11 +185,14 @@ body{
 
 <script>
 
-/* ====== SONIDOS ====== */
-const okSound = new Audio("https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3");
-const failSound = new Audio("https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-946.mp3");
+/* ===== SONIDOS (SEGUROS) ===== */
+const okSound = new Audio();
+okSound.src = "https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3";
 
-/* ====== DATOS ====== */
+const failSound = new Audio();
+failSound.src = "https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-946.mp3";
+
+/* ===== DATOS ===== */
 let current = 0;
 let progress = 0;
 
@@ -205,7 +205,8 @@ const data = [
 {q:"Impacto humano?",o:["Reforestar","Deforestar","Proteger"],c:1}
 ];
 
-/* ====== FUNCIONES ====== */
+/* ===== FUNCIONES ===== */
+
 function startGame(){
   show("mapScreen");
   moveShip(0);
@@ -217,59 +218,80 @@ function show(id){
 }
 
 function openZone(n){
-  current=n;
+  current = n;
   loadQ();
   show("game");
 }
 
 function loadQ(){
-  let q=data[current];
-  document.getElementById("q").innerText=q.q;
+  let q = data[current];
+  document.getElementById("q").innerText = q.q;
 
   let html="";
   q.o.forEach((opt,i)=>{
-    html+=`<div class="option" onclick="check(${i})">${opt}</div>`;
+    html+=`<div class="option" data-i="${i}">${opt}</div>`;
   });
 
-  document.getElementById("opts").innerHTML=html;
+  document.getElementById("opts").innerHTML = html;
+
+  /* 🔥 EVENTOS SEGUROS */
+  document.querySelectorAll(".option").forEach(el=>{
+    el.onclick = () => check(parseInt(el.dataset.i));
+  });
 }
 
 function check(i){
-  let q=data[current];
+  let q = data[current];
 
-  if(i===q.c){
+  if(i === q.c){
+
+    okSound.currentTime = 0;
     okSound.play();
+
+    document.querySelectorAll(".option")[i].style.background = "#16a34a";
+
     progress++;
     updateBar();
     unlock();
-    moveShip(current+1);
-    setTimeout(()=>show("mapScreen"),800);
-  }else{
+
+    setTimeout(()=>{
+      moveShip(current+1);
+      show("mapScreen");
+    },700);
+
+  } else {
+
+    failSound.currentTime = 0;
     failSound.play();
-    alert("❌ Intenta otra vez");
+
+    document.querySelectorAll(".option")[i].style.background = "#dc2626";
+
+    setTimeout(()=>{
+      alert("❌ Intenta otra vez");
+    },200);
   }
 }
 
 function unlock(){
-  if(current<5){
+  if(current < 5){
     document.getElementById("z"+current).classList.remove("locked");
   }
 }
 
 function updateBar(){
-  document.getElementById("bar").style.width=(progress/6*100)+"%";
+  document.getElementById("bar").style.width = (progress/6*100)+"%";
 }
 
 function moveShip(n){
-  const zones=document.querySelectorAll(".zone");
-  const ship=document.getElementById("ship");
+  const zones = document.querySelectorAll(".zone");
+  const ship = document.getElementById("ship");
 
   if(zones[n]){
-    let rect=zones[n].getBoundingClientRect();
-    let mapRect=document.getElementById("map").getBoundingClientRect();
+    let rect = zones[n].getBoundingClientRect();
+    let mapRect = document.getElementById("map").getBoundingClientRect();
 
-    ship.style.left=(rect.left-mapRect.left+20)+"px";
-    ship.style.top=(rect.top-mapRect.top-10)+"px";
+    ship.style.left = (rect.left - mapRect.left + 20) + "px";
+    ship.style.top = (rect.top - mapRect.top - 10) + "px";
   }
 }
 
