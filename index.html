@@ -6,146 +6,178 @@
 
 <title>Planeta Ecosistema</title>
 
-<script src="https://cdn.tailwindcss.com"></script>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Fredoka+One&display=swap" rel="stylesheet">
 
 <style>
 body{
+margin:0;
 font-family:'Nunito',sans-serif;
-background:linear-gradient(135deg,#0f172a,#1e293b,#065f46);
+background:radial-gradient(circle at center,#0f172a,#020617);
 color:white;
+overflow:hidden;
 }
 
 .font-title{font-family:'Fredoka One',cursive;}
 
-.card{
-background:rgba(30,41,59,0.7);
-border:1px solid rgba(16,185,129,0.3);
-border-radius:16px;
-padding:16px;
-margin:10px;
-cursor:pointer;
-transition:0.3s;
+.screen{
+position:absolute;
+width:100%;
+height:100%;
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:center;
 }
-.card:hover{transform:scale(1.05)}
+
+.hidden{display:none}
 
 .btn{
 background:#10b981;
-color:#022c22;
-padding:10px 20px;
+padding:12px 20px;
 border-radius:12px;
-font-weight:bold;
 cursor:pointer;
+font-weight:bold;
+margin-top:10px;
 }
+
+.planet{
+position:absolute;
+border-radius:50%;
+cursor:pointer;
+transition:0.3s;
+}
+
+.planet:hover{transform:scale(1.2)}
+
+.locked{filter:grayscale(1);opacity:0.4}
 
 .correct{background:#047857!important}
 .wrong{background:#991b1b!important}
 
-.hidden{display:none}
+textarea{
+width:100%;
+height:80px;
+border-radius:10px;
+padding:10px;
+color:black;
+}
 </style>
 </head>
 
-<body class="p-4">
+<body>
 
 <!-- INTRO -->
-<div id="intro" class="text-center">
-<h1 class="font-title text-4xl mb-4">🌍 Planeta Ecosistema</h1>
-<p class="mb-6">Misión de supervivencia</p>
-<button onclick="startGame()" class="btn">🚀 Iniciar misión</button>
+<div id="intro" class="screen">
+<h1 class="font-title" style="font-size:40px">🌍 Planeta Ecosistema</h1>
+<p>Misión de supervivencia</p>
+<button class="btn" onclick="startGame()">🚀 Iniciar</button>
 </div>
 
 <!-- MAPA -->
-<div id="map" class="hidden text-center">
-<h2 class="font-title text-2xl mb-4">Mapa del planeta</h2>
+<div id="map" class="screen hidden">
 
-<div id="zones" class="grid grid-cols-2 md:grid-cols-3"></div>
+<div id="space"></div>
 
-<button onclick="copyAnswers()" class="btn mt-6">
+<button class="btn" style="position:absolute;bottom:20px" onclick="copyAnswers()">
 📋 Copiar respuestas
 </button>
+
 </div>
 
 <!-- ZONA -->
-<div id="zone" class="hidden max-w-xl mx-auto">
+<div id="zone" class="screen hidden" style="padding:20px">
 
-<h2 id="zoneTitle" class="font-title text-2xl mb-2"></h2>
+<h2 id="zoneTitle"></h2>
+<img id="zoneImg" style="max-width:300px;border-radius:12px">
 
-<img id="zoneImg" class="rounded-xl mb-4 w-full max-h-48 object-cover">
+<p id="q1"></p>
+<div id="options"></div>
+<p id="fb1"></p>
 
-<!-- PREGUNTA 1 -->
-<p id="q1" class="font-bold mb-2"></p>
-<div id="options" class="space-y-2"></div>
-<p id="feedback1" class="mt-2"></p>
-
-<!-- PREGUNTA 2 -->
-<div id="q2block" class="hidden mt-4">
-<p id="q2" class="font-bold mb-2"></p>
-<textarea id="input" class="w-full p-2 rounded text-black"></textarea>
-<button onclick="answerQ2()" class="btn mt-2">Responder</button>
-<p id="feedback2"></p>
+<div id="q2block" class="hidden">
+<p id="q2"></p>
+<textarea id="input"></textarea>
+<button class="btn" onclick="answerQ2()">Responder</button>
+<p id="fb2"></p>
 </div>
 
-<button id="finishBtn" onclick="finishZone()" class="btn mt-4 hidden">
-Volver al mapa
-</button>
+<button id="finish" class="btn hidden" onclick="finishZone()">Volver</button>
 
+</div>
+
+<!-- FINAL -->
+<div id="final" class="screen hidden">
+<h1 class="font-title">🏆 ¡Ecosistema restaurado!</h1>
+<div id="summary"></div>
+<button class="btn" onclick="location.reload()">Reiniciar</button>
 </div>
 
 <script>
 
-// ESTADO
 let state={
 current:-1,
 completed:[],
 answers:{}
 }
 
-// DATOS
+// 6 ZONAS
 const zones=[
 {
 title:"Ecosistema",
-img:"https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/Ecosystem.jpg/640px-Ecosystem.jpg",
+img:"https://upload.wikimedia.org/wikipedia/commons/6/68/Ecosystem.jpg",
 q1:"¿Qué es un ecosistema?",
-options:[
-"Solo seres vivos",
-"Seres vivos + medio + relaciones",
-"Solo clima"
-],
+options:["Seres vivos","Todo el sistema completo","Clima"],
 correct:1,
-q2:"¿El agua es biótica o abiótica?"
+q2:"Define ecosistema"
 },
 {
-title:"Cadena trófica",
-img:"https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/Food_chain.svg/640px-Food_chain.svg.png",
-q1:"¿Quién produce energía?",
-options:[
-"Productores",
-"Consumidores",
-"Descomponedores"
-],
-correct:0,
-q2:"¿Qué ocurre si desaparece un eslabón?"
+title:"Factores abióticos",
+img:"https://upload.wikimedia.org/wikipedia/commons/3/3f/Temperature_graph.png",
+q1:"Zona óptima es:",
+options:["Donde mueren","Donde viven mejor","Máximo calor"],
+correct:1,
+q2:"¿Qué pasa fuera del rango?"
 },
 {
 title:"Relaciones",
-img:"https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Mutualism.jpg/640px-Mutualism.jpg",
-q1:"¿Qué es el mutualismo?",
-options:[
-"Uno gana y otro pierde",
-"Ambos se benefician",
-"Nadie gana"
-],
+img:"https://upload.wikimedia.org/wikipedia/commons/3/3a/Mutualism.jpg",
+q1:"Mutualismo:",
+options:["Uno pierde","Ambos ganan","Nadie gana"],
 correct:1,
-q2:"Pon un ejemplo de relación entre seres vivos"
+q2:"Pon ejemplo"
+},
+{
+title:"Cadena trófica",
+img:"https://upload.wikimedia.org/wikipedia/commons/1/11/Food_chain.svg",
+q1:"Orden correcto:",
+options:["Productor primero","Consumidor primero","Descomponedor primero"],
+correct:0,
+q2:"¿Qué pasa si falta uno?"
+},
+{
+title:"Pirámide",
+img:"https://upload.wikimedia.org/wikipedia/commons/e/e4/Ecological_pyramid.svg",
+q1:"Energía:",
+options:["Aumenta","Disminuye","Igual"],
+correct:1,
+q2:"¿Por qué?"
+},
+{
+title:"Impacto humano",
+img:"https://upload.wikimedia.org/wikipedia/commons/5/5f/Deforestation.jpg",
+q1:"Daño ambiental:",
+options:["Reforestar","Deforestar","Reciclar"],
+correct:1,
+q2:"Propuesta ecológica"
 }
 ]
 
-// NAVEGACIÓN
-function show(screen){
-["intro","map","zone"].forEach(s=>{
+// CAMBIAR PANTALLA
+function show(id){
+["intro","map","zone","final"].forEach(s=>{
 document.getElementById(s).classList.add("hidden")
 })
-document.getElementById(screen).classList.remove("hidden")
+document.getElementById(id).classList.remove("hidden")
 }
 
 // INICIO
@@ -154,51 +186,58 @@ renderMap()
 show("map")
 }
 
-// MAPA
+// MAPA PLANETA
 function renderMap(){
-let html=""
+let space=document.getElementById("space")
+space.innerHTML=""
 
 zones.forEach((z,i)=>{
 
 let unlocked = i===0 || state.completed.includes(i-1)
 let done = state.completed.includes(i)
 
-html+=`
-<div class="card"
-onclick="${unlocked && !done ? `enterZone(${i})` : ''}">
-🌍 ${z.title}
-${done ? "✅" : unlocked ? "🟢" : "🔒"}
-</div>
-`
-})
+let p=document.createElement("div")
+p.className="planet "+(unlocked?"":"locked")
+p.style.width="60px"
+p.style.height="60px"
+p.style.background="radial-gradient(circle,#10b981,#065f46)"
+p.style.left=(100+ i*120)+"px"
+p.style.top=(150+ Math.sin(i)*80)+"px"
 
-document.getElementById("zones").innerHTML=html
+p.innerHTML=done?"✅":"🌍"
+
+if(unlocked && !done){
+p.onclick=()=>enterZone(i)
+}
+
+space.appendChild(p)
+})
 }
 
 // ENTRAR ZONA
 function enterZone(i){
 
-// RESET TOTAL (SOLUCION BUG)
-document.getElementById("options").innerHTML=""
-document.getElementById("feedback1").innerHTML=""
-document.getElementById("feedback2").innerHTML=""
-document.getElementById("input").value=""
-document.getElementById("q2block").classList.add("hidden")
-document.getElementById("finishBtn").classList.add("hidden")
+// RESET
+options.innerHTML=""
+fb1.innerHTML=""
+fb2.innerHTML=""
+input.value=""
+q2block.classList.add("hidden")
+finish.classList.add("hidden")
 
 state.current=i
 let z=zones[i]
 
-document.getElementById("zoneTitle").innerText=z.title
-document.getElementById("zoneImg").src=z.img
-document.getElementById("q1").innerText=z.q1
+zoneTitle.innerText=z.title
+zoneImg.src=z.img
+q1.innerText=z.q1
 
 z.options.forEach((opt,index)=>{
-let btn=document.createElement("div")
-btn.className="card"
-btn.innerText=opt
-btn.onclick=()=>answerQ1(index)
-document.getElementById("options").appendChild(btn)
+let b=document.createElement("div")
+b.className="btn"
+b.innerText=opt
+b.onclick=()=>answerQ1(index)
+options.appendChild(b)
 })
 
 show("zone")
@@ -206,61 +245,69 @@ show("zone")
 
 // RESPUESTA TEST
 function answerQ1(i){
-
 let z=zones[state.current]
-let buttons=document.querySelectorAll("#options div")
+let btns=options.children
 
-buttons.forEach((b,idx)=>{
-if(idx===z.correct)b.classList.add("correct")
-if(idx===i && idx!==z.correct)b.classList.add("wrong")
-})
+for(let j=0;j<btns.length;j++){
+if(j===z.correct)btns[j].classList.add("correct")
+if(j===i && j!==z.correct)btns[j].classList.add("wrong")
+}
 
 if(i===z.correct){
+fb1.innerText="✅ Correcto"
+state.answers["Zona "+(state.current+1)+" Test"]=z.options[i]
 
-document.getElementById("feedback1").innerText="✅ Correcto"
-
-state.answers["Zona "+(state.current+1)+" - Test"]=z.options[i]
-
-// desbloquear siguiente
-document.getElementById("q2block").classList.remove("hidden")
-document.getElementById("q2").innerText=z.q2
-
+q2block.classList.remove("hidden")
+q2.innerText=z.q2
 }else{
-document.getElementById("feedback1").innerText="❌ Incorrecto"
+fb1.innerText="❌ Incorrecto"
 }
 }
 
 // RESPUESTA ABIERTA
 function answerQ2(){
+let txt=input.value
 
-let txt=document.getElementById("input").value
+state.answers["Zona "+(state.current+1)+" Abierta"]=txt
 
-state.answers["Zona "+(state.current+1)+" - Abierta"]=txt
-
-document.getElementById("feedback2").innerText="Respuesta guardada ✅"
-
-document.getElementById("finishBtn").classList.remove("hidden")
+fb2.innerText="Guardado"
+finish.classList.remove("hidden")
 }
 
-// FINALIZAR
+// FINALIZAR ZONA
 function finishZone(){
 state.completed.push(state.current)
+
+if(state.completed.length===6){
+showFinal()
+}else{
 renderMap()
 show("map")
 }
-
-// COPIAR RESPUESTAS
-function copyAnswers(){
-
-let text="RESPUESTAS DEL ALUMNO\n\n"
-
-for(let k in state.answers){
-text+=k+":\n"+state.answers[k]+"\n\n"
 }
 
-navigator.clipboard.writeText(text)
+// FINAL
+function showFinal(){
+let s=document.getElementById("summary")
+s.innerHTML=""
 
-alert("Respuestas copiadas 👍")
+for(let k in state.answers){
+s.innerHTML+=`<p>${k}: ${state.answers[k]}</p>`
+}
+
+show("final")
+}
+
+// COPIAR
+function copyAnswers(){
+let txt="RESPUESTAS\n\n"
+
+for(let k in state.answers){
+txt+=k+":\n"+state.answers[k]+"\n\n"
+}
+
+navigator.clipboard.writeText(txt)
+alert("Copiado")
 }
 
 </script>
