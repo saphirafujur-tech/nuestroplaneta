@@ -11,7 +11,6 @@ body{
   font-family:sans-serif;
   background:#020617;
   color:white;
-  overflow:hidden;
 }
 
 /* fondo */
@@ -35,7 +34,7 @@ body::before{
 }
 .active{display:flex}
 
-/* planeta */
+/* planeta inicio */
 .earth{
   width:220px;
   height:220px;
@@ -81,7 +80,9 @@ body::before{
   align-items:center;
   cursor:pointer;
   border:2px solid #10b981;
+  transition:0.3s;
 }
+.zone:hover{transform:scale(1.1)}
 
 .locked{
   opacity:0.3;
@@ -93,6 +94,7 @@ body::before{
   background:#0f172a;
   padding:20px;
   border-radius:10px;
+  max-width:400px;
 }
 
 .option{
@@ -112,11 +114,14 @@ body::before{
 <div id="intro" class="screen active">
 <div class="earth"></div>
 <h1>🌍 Planeta Ecosistema</h1>
-<button class="btn" onclick="start()">🚀 Empezar</button>
+<p>Debes restaurar el equilibrio del planeta superando cada zona.</p>
+<button class="btn" onclick="start()">🚀 Iniciar misión</button>
 </div>
 
 <!-- MAPA -->
 <div id="map" class="screen">
+<h2>🪐 Mapa del planeta</h2>
+
 <div class="map">
 
 <div class="zone" onclick="openQ(0)" style="top:10px;left:140px">🌱</div>
@@ -127,20 +132,23 @@ body::before{
 <div id="z5" class="zone locked" onclick="openQ(5)" style="top:150px;left:140px">🌍</div>
 
 </div>
+
+<p>🔓 Completa cada zona para desbloquear la siguiente</p>
 </div>
 
-<!-- PREGUNTA -->
+<!-- PREGUNTAS -->
 <div id="game" class="screen">
 <div class="box">
 <h3 id="question"></h3>
 <div id="answers"></div>
-<button class="btn" onclick="back()">⬅ Volver al planeta</button>
+<button class="btn" onclick="back()">⬅ Volver al mapa</button>
 </div>
 </div>
 
 <script>
 
 let current = 0;
+let unlocked = [true,false,false,false,false,false];
 
 const data = [
 {q:"¿Qué es un ecosistema?",a:["Solo seres vivos","Seres vivos + medio + relaciones","Clima"],c:1},
@@ -161,6 +169,7 @@ function start(){
 }
 
 function openQ(n){
+  if(!unlocked[n]) return;
   current = n;
   load();
   show("game");
@@ -182,17 +191,18 @@ function check(i){
   let q = data[current];
 
   if(i === q.c){
-    alert("✅ ¡Correcto!");
+    alert("✅ ¡Correcto! Zona completada");
 
     // desbloquear siguiente
     if(current < 5){
-      document.getElementById("z"+current).classList.remove("locked");
+      unlocked[current+1] = true;
+      document.getElementById("z"+(current+1)).classList.remove("locked");
     }
 
     show("map");
 
   }else{
-    alert("❌ Incorrecto, inténtalo otra vez");
+    alert("❌ Incorrecto, intenta otra vez");
   }
 }
 
