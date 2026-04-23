@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Planeta Ecosistema</title>
+<title>Planeta Ecosistema PRO</title>
 
 <style>
 body{
@@ -34,7 +34,7 @@ body::before{
 }
 .active{display:flex}
 
-/* planeta inicio */
+/* planeta */
 .earth{
   width:220px;
   height:220px;
@@ -46,17 +46,6 @@ body::before{
 @keyframes spin{
   from{background-position:0}
   to{background-position:1000px}
-}
-
-/* botón */
-.btn{
-  margin-top:20px;
-  padding:12px 25px;
-  background:#10b981;
-  border:none;
-  border-radius:10px;
-  cursor:pointer;
-  font-weight:bold;
 }
 
 /* mapa */
@@ -80,13 +69,14 @@ body::before{
   align-items:center;
   cursor:pointer;
   border:2px solid #10b981;
-  transition:0.3s;
 }
-.zone:hover{transform:scale(1.1)}
+.locked{opacity:0.3;pointer-events:none}
 
-.locked{
-  opacity:0.3;
-  pointer-events:none;
+/* nave */
+.ship{
+  position:absolute;
+  font-size:24px;
+  transition:1s;
 }
 
 /* pregunta */
@@ -94,7 +84,7 @@ body::before{
   background:#0f172a;
   padding:20px;
   border-radius:10px;
-  max-width:400px;
+  max-width:450px;
 }
 
 .option{
@@ -104,7 +94,40 @@ body::before{
   border-radius:8px;
   cursor:pointer;
 }
-.option:hover{background:#334155}
+.option.correct{background:#16a34a}
+.option.wrong{background:#dc2626}
+
+/* input */
+input{
+  padding:10px;
+  border-radius:6px;
+  border:none;
+  width:80%;
+}
+
+/* barra */
+.progress{
+  position:absolute;
+  top:20px;
+  width:200px;
+  height:10px;
+  background:#1e293b;
+}
+.bar{
+  height:100%;
+  width:0%;
+  background:#10b981;
+}
+
+/* botones */
+.btn{
+  margin-top:15px;
+  padding:10px 20px;
+  background:#10b981;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+}
 </style>
 </head>
 
@@ -114,15 +137,16 @@ body::before{
 <div id="intro" class="screen active">
 <div class="earth"></div>
 <h1>🌍 Planeta Ecosistema</h1>
-<p>Debes restaurar el equilibrio del planeta superando cada zona.</p>
-<button class="btn" onclick="start()">🚀 Iniciar misión</button>
+<p>Restaura el equilibrio del planeta superando cada zona.</p>
+<button class="btn" onclick="start()">🚀 Empezar</button>
 </div>
 
 <!-- MAPA -->
 <div id="map" class="screen">
-<h2>🪐 Mapa del planeta</h2>
+<div class="progress"><div class="bar" id="bar"></div></div>
 
 <div class="map">
+<div class="ship" id="ship">🚀</div>
 
 <div class="zone" onclick="openQ(0)" style="top:10px;left:140px">🌱</div>
 <div id="z1" class="zone locked" onclick="openQ(1)" style="top:80px;left:260px">🌡️</div>
@@ -132,82 +156,160 @@ body::before{
 <div id="z5" class="zone locked" onclick="openQ(5)" style="top:150px;left:140px">🌍</div>
 
 </div>
-
-<p>🔓 Completa cada zona para desbloquear la siguiente</p>
 </div>
 
 <!-- PREGUNTAS -->
 <div id="game" class="screen">
 <div class="box">
 <h3 id="question"></h3>
+<img id="img" style="max-width:100%;display:none;border-radius:8px">
+
 <div id="answers"></div>
-<button class="btn" onclick="back()">⬅ Volver al mapa</button>
+
+<div id="openBox" style="display:none">
+<input id="openInput" placeholder="Escribe tu respuesta">
+<button class="btn" onclick="checkOpen()">Responder</button>
 </div>
+
+<button class="btn" onclick="back()">⬅ Volver</button>
+</div>
+</div>
+
+<!-- FINAL -->
+<div id="end" class="screen">
+<h1>🏆 MISIÓN COMPLETADA</h1>
+<p id="scoreText"></p>
+<button class="btn" onclick="location.reload()">🔄 Jugar otra vez</button>
 </div>
 
 <script>
 
-let current = 0;
-let unlocked = [true,false,false,false,false,false];
+let current=0;
+let unlocked=[true,false,false,false,false,false];
+let score=0;
+let progress=0;
 
-const data = [
+/* DATOS */
+const data=[
 {q:"¿Qué es un ecosistema?",a:["Solo seres vivos","Seres vivos + medio + relaciones","Clima"],c:1},
-{q:"¿Factor abiótico?",a:["Planta","Agua","Animal"],c:1},
-{q:"Relación depredador?",a:["Mutualismo","Depredación","Comensalismo"],c:1},
-{q:"Inicio cadena?",a:["Consumidor","Productor","Descomponedor"],c:1},
+{q:"¿Factor abiótico?",a:["Planta","Agua","Animal"],c:1,img:"https://cdn.pixabay.com/photo/2016/11/29/09/32/water-1867618_1280.jpg"},
+{q:"Relación depredador?",type:"open",correct:["depredación"]},
+{q:"Inicio cadena?",a:["Consumidor","Productor","Descomponedor"],c:1,img:"https://cdn.pixabay.com/photo/2017/01/20/00/30/food-chain-1992855_1280.png"},
 {q:"Energía?",a:["Aumenta","Disminuye","Igual"],c:1},
-{q:"Impacto humano?",a:["Reforestar","Deforestar","Proteger"],c:1}
+{q:"Acción humana positiva?",type:"open",correct:["reforestar","reciclar"]}
 ];
 
 function show(id){
-  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
-  document.getElementById(id).classList.add("active");
+document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+document.getElementById(id).classList.add("active");
 }
 
 function start(){
-  show("map");
+show("map");
+moveShip(0);
 }
 
 function openQ(n){
-  if(!unlocked[n]) return;
-  current = n;
-  load();
-  show("game");
+if(!unlocked[n]) return;
+current=n;
+load();
+show("game");
 }
 
 function load(){
-  let q = data[current];
-  document.getElementById("question").innerText = q.q;
+let q=data[current];
 
-  let html="";
-  q.a.forEach((op,i)=>{
-    html += `<div class="option" onclick="check(${i})">${op}</div>`;
-  });
+document.getElementById("question").innerText=q.q;
 
-  document.getElementById("answers").innerHTML = html;
+/* imagen */
+let img=document.getElementById("img");
+if(q.img){
+img.src=q.img;
+img.style.display="block";
+}else img.style.display="none";
+
+/* reset */
+document.getElementById("answers").innerHTML="";
+document.getElementById("openBox").style.display="none";
+
+/* tipo */
+if(q.type==="open"){
+document.getElementById("openBox").style.display="block";
+}else{
+let html="";
+q.a.forEach((op,i)=>{
+html+=`<div class="option" onclick="check(${i})">${op}</div>`;
+});
+document.getElementById("answers").innerHTML=html;
+}
 }
 
 function check(i){
-  let q = data[current];
+let q=data[current];
+let ops=document.querySelectorAll(".option");
 
-  if(i === q.c){
-    alert("✅ ¡Correcto! Zona completada");
+if(i===q.c){
+ops[i].classList.add("correct");
+win();
+}else{
+ops[i].classList.add("wrong");
+alert("❌ Incorrecto");
+}
+}
 
-    // desbloquear siguiente
-    if(current < 5){
-      unlocked[current+1] = true;
-      document.getElementById("z"+(current+1)).classList.remove("locked");
-    }
+function checkOpen(){
+let q=data[current];
+let val=document.getElementById("openInput").value.toLowerCase();
 
-    show("map");
+let ok=q.correct.some(k=>val.includes(k));
 
-  }else{
-    alert("❌ Incorrecto, intenta otra vez");
-  }
+if(ok){
+win();
+}else{
+alert("❌ Revisa tu respuesta");
+}
+}
+
+function win(){
+alert("✅ ¡Correcto!");
+
+score++;
+progress++;
+updateBar();
+
+if(current<5){
+unlocked[current+1]=true;
+document.getElementById("z"+(current+1)).classList.remove("locked");
+moveShip(current+1);
+}else{
+endGame();
+}
+
+show("map");
+}
+
+function updateBar(){
+document.getElementById("bar").style.width=(progress/6*100)+"%";
+}
+
+function moveShip(n){
+let zones=document.querySelectorAll(".zone");
+let ship=document.getElementById("ship");
+
+let r=zones[n].getBoundingClientRect();
+let m=document.querySelector(".map").getBoundingClientRect();
+
+ship.style.left=(r.left-m.left+15)+"px";
+ship.style.top=(r.top-m.top-10)+"px";
 }
 
 function back(){
-  show("map");
+show("map");
+}
+
+function endGame(){
+document.getElementById("scoreText").innerText="Puntuación: "+score+"/6";
+show("end");
 }
 
 </script>
