@@ -3,100 +3,159 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Planeta Ecosistema</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/lucide@latest"></script>
 
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&family=Fredoka+One&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Fredoka+One&display=swap" rel="stylesheet">
 
 <style>
 body{
-  font-family:'Nunito',sans-serif;
-  background:linear-gradient(135deg,#0f172a,#1e293b,#065f46);
-  background-size:400% 400%;
-  animation: bg 15s infinite;
-  color:white;
+font-family:'Nunito',sans-serif;
+background:linear-gradient(135deg,#0f172a,#1e293b,#065f46);
+background-size:400% 400%;
+animation:bg 15s infinite;
+color:white;
 }
+
 @keyframes bg{
 0%,100%{background-position:0%}
 50%{background-position:100%}
 }
+
 .font-title{font-family:'Fredoka One',cursive}
+
+.zone{
+transition:0.3s;
+}
+.zone:hover{transform:scale(1.05)}
 
 .correct{background:#047857 !important}
 .wrong{background:#991b1b !important}
+
+.fade{animation:fade 0.5s}
+@keyframes fade{from{opacity:0}to{opacity:1}}
 </style>
 </head>
 
 <body class="h-screen flex flex-col">
 
 <!-- INTRO -->
-<div id="intro" class="flex flex-col items-center justify-center h-full text-center">
-<h1 class="font-title text-5xl text-emerald-300 mb-4">🌍 Planeta Ecosistema</h1>
-<p class="mb-6">Restaura el equilibrio del planeta</p>
-<button onclick="start()" class="bg-emerald-500 px-6 py-3 rounded-xl font-bold">🚀 Empezar</button>
+<div id="intro" class="flex flex-col items-center justify-center h-full text-center fade">
+<div class="text-7xl mb-4">🌍</div>
+
+<h1 class="font-title text-5xl text-emerald-300 mb-4">
+Planeta Ecosistema
+</h1>
+
+<p class="mb-6 max-w-md">
+Reconstruye el equilibrio del planeta superando desafíos científicos
+</p>
+
+<button onclick="startGame()" class="bg-emerald-500 px-8 py-4 rounded-xl font-bold text-lg hover:scale-105 transition">
+🚀 Iniciar misión
+</button>
 </div>
 
 <!-- MAPA -->
-<div id="map" class="hidden p-6 text-center">
-<h2 class="font-title text-3xl mb-4">Mapa del planeta</h2>
+<div id="map" class="hidden p-6 text-center fade">
 
-<div id="zones" class="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-xl mx-auto"></div>
+<h2 class="font-title text-3xl mb-6 text-emerald-300">
+Mapa del planeta
+</h2>
 
-<p id="score" class="mt-4"></p>
+<div id="zones" class="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-3xl mx-auto"></div>
+
+<p id="score" class="mt-6 text-slate-300"></p>
+
 </div>
 
 <!-- ZONA -->
-<div id="zone" class="hidden p-6 max-w-xl mx-auto">
-<button onclick="back()">⬅ Volver</button>
-<h2 id="title" class="font-title text-2xl my-4"></h2>
+<div id="zone" class="hidden p-6 max-w-2xl mx-auto fade">
 
-<div id="question"></div>
-<div id="options" class="mt-4 space-y-2"></div>
+<button onclick="backMap()" class="mb-4 text-slate-400 hover:text-emerald-300">
+⬅ Volver al mapa
+</button>
+
+<h2 id="zoneTitle" class="font-title text-2xl mb-4"></h2>
+
+<div id="question" class="mb-4 text-lg"></div>
+
+<div id="options" class="space-y-3"></div>
+
 <div id="feedback" class="mt-4"></div>
+
+<button id="continueBtn" onclick="finishZone()" class="hidden mt-6 bg-emerald-500 px-6 py-3 rounded-xl font-bold">
+Continuar
+</button>
+
 </div>
 
 <!-- FINAL -->
-<div id="end" class="hidden flex flex-col items-center justify-center h-full">
-<h1 class="text-4xl text-yellow-300 mb-4">🏆 ¡Completado!</h1>
-<p id="final"></p>
-<button onclick="location.reload()" class="bg-emerald-500 px-6 py-3 rounded-xl mt-4">Reiniciar</button>
+<div id="final" class="hidden flex flex-col items-center justify-center h-full text-center fade">
+
+<div class="text-6xl mb-4">🏆</div>
+
+<h1 class="font-title text-4xl text-yellow-300 mb-4">
+¡Ecosistema restaurado!
+</h1>
+
+<p id="finalScore" class="text-lg mb-6"></p>
+
+<button onclick="location.reload()" class="bg-emerald-500 px-8 py-4 rounded-xl font-bold">
+Jugar otra vez
+</button>
+
 </div>
 
 <script>
-let score=0;
-let current=-1;
-let completed=[];
 
+// ===== ESTADO =====
+let state={
+current:-1,
+completed:[],
+score:0
+}
+
+// ===== DATOS =====
 const zones=[
 {
 title:"Ecosistema",
 q:"¿Qué es un ecosistema?",
-options:["Solo seres vivos","Seres vivos + medio + relaciones","Clima"],
+options:[
+"Solo seres vivos",
+"Seres vivos + medio + relaciones",
+"Clima"
+],
 correct:1,
-feedback:"Incluye seres vivos, medio físico y relaciones."
+feedback:"Incluye biocenosis, biotopo y relaciones."
 },
 {
-title:"Factores",
+title:"Factores abióticos",
 q:"¿El agua es?",
 options:["Biótico","Abiótico","Ninguno"],
 correct:1,
-feedback:"El agua no tiene vida."
+feedback:"No tiene vida."
 },
 {
 title:"Relaciones",
-q:"¿Relación depredador?",
+q:"¿Depredación?",
 options:["Mutualismo","Depredación","Comensalismo"],
 correct:1,
-feedback:"Uno se come al otro."
+feedback:"Uno se alimenta de otro."
 },
 {
-title:"Cadena",
+title:"Cadena trófica",
 q:"Orden correcto",
-options:["Consumidor→Productor","Productor→Consumidor","Descomponedor→Productor"],
+options:[
+"Consumidor→Productor",
+"Productor→Consumidor",
+"Descomponedor→Productor"
+],
 correct:1,
-feedback:"Siempre empieza en productor."
+feedback:"Siempre empieza en productores."
 },
 {
 title:"Pirámide",
@@ -106,7 +165,7 @@ correct:1,
 feedback:"Se pierde energía."
 },
 {
-title:"Impacto",
+title:"Impacto humano",
 q:"¿Qué daña ecosistemas?",
 options:["Reservas","Deforestación","Reforestación"],
 correct:1,
@@ -114,83 +173,130 @@ feedback:"Destruye hábitats."
 }
 ];
 
-function show(id){
-["intro","map","zone","end"].forEach(s=>document.getElementById(s).classList.add("hidden"));
-document.getElementById(id).classList.remove("hidden");
+// ===== NAVEGACIÓN =====
+function show(screen){
+["intro","map","zone","final"].forEach(s=>{
+document.getElementById(s).classList.add("hidden")
+})
+document.getElementById(screen).classList.remove("hidden")
 }
 
-function start(){
-renderMap();
-show("map");
+// ===== INICIO =====
+function startGame(){
+state.completed=[]
+state.score=0
+renderMap()
+show("map")
 }
 
+// ===== MAPA =====
 function renderMap(){
-let html="";
+let html=""
+
 zones.forEach((z,i)=>{
-let unlocked=i===0||completed.includes(i-1);
+
+let unlocked=i===0||state.completed.includes(i-1)
+let done=state.completed.includes(i)
+
 html+=`
-<button onclick="enter(${i})" 
-class="p-4 rounded-xl border ${unlocked?'bg-slate-700':'bg-slate-900 opacity-40'}">
-${z.title}
-</button>`;
-});
-document.getElementById("zones").innerHTML=html;
-document.getElementById("score").innerText="Puntuación: "+score;
+<div class="zone p-4 rounded-xl border 
+${done?'bg-emerald-900':'bg-slate-800'}
+${!unlocked?'opacity-40':''}"
+onclick="${unlocked&&!done?`enterZone(${i})`:''}">
+
+<div class="text-2xl mb-2">🌍</div>
+
+<p class="font-bold">${z.title}</p>
+
+<p class="text-xs">
+${done?'✔ completado':unlocked?'Disponible':'Bloqueado'}
+</p>
+
+</div>
+`
+})
+
+document.getElementById("zones").innerHTML=html
+document.getElementById("score").innerText="Puntuación: "+state.score
 }
 
-function enter(i){
-if(i!==0 && !completed.includes(i-1)) return;
+// ===== ENTRAR ZONA =====
+function enterZone(i){
+state.current=i
 
-current=i;
-let z=zones[i];
+let z=zones[i]
 
-document.getElementById("title").innerText=z.title;
-document.getElementById("question").innerText=z.q;
+document.getElementById("zoneTitle").innerText=z.title
+document.getElementById("question").innerText=z.q
 
-let opts="";
+let opts=""
 z.options.forEach((o,idx)=>{
-opts+=`<div class="p-3 bg-slate-700 rounded-xl cursor-pointer"
-onclick="answer(${idx})">${o}</div>`;
-});
-document.getElementById("options").innerHTML=opts;
-document.getElementById("feedback").innerHTML="";
+opts+=`
+<div onclick="answer(${idx})"
+class="p-3 bg-slate-700 rounded-xl cursor-pointer hover:bg-slate-600">
+${o}
+</div>`
+})
 
-show("zone");
+document.getElementById("options").innerHTML=opts
+document.getElementById("feedback").innerHTML=""
+document.getElementById("continueBtn").classList.add("hidden")
+
+show("zone")
 }
 
+// ===== RESPONDER =====
 function answer(i){
-let z=zones[current];
-let buttons=document.querySelectorAll("#options div");
+let z=zones[state.current]
+let buttons=document.querySelectorAll("#options div")
 
 buttons.forEach((b,idx)=>{
-if(idx===z.correct) b.classList.add("correct");
-if(idx===i && idx!==z.correct) b.classList.add("wrong");
-});
+if(idx===z.correct) b.classList.add("correct")
+if(idx===i && idx!==z.correct) b.classList.add("wrong")
+})
 
 if(i===z.correct){
-score++;
-setTimeout(()=>{
-completed.push(current);
-if(completed.length===6){
-end();
+state.score++
+
+document.getElementById("feedback").innerHTML=
+"✅ Correcto<br>"+z.feedback
+
+document.getElementById("continueBtn").classList.remove("hidden")
+
 }else{
-renderMap();
-show("map");
-}
-},1000);
-}else{
-document.getElementById("feedback").innerText="❌ Incorrecto";
+document.getElementById("feedback").innerHTML=
+"❌ Incorrecto<br>"+z.feedback
 }
 }
 
-function back(){
-show("map");
+// ===== FINALIZAR ZONA =====
+function finishZone(){
+
+if(!state.completed.includes(state.current)){
+state.completed.push(state.current)
 }
 
-function end(){
-document.getElementById("final").innerText="Puntuación: "+score+"/6";
-show("end");
+if(state.completed.length===zones.length){
+endGame()
+}else{
+renderMap()
+show("map")
 }
+}
+
+// ===== VOLVER =====
+function backMap(){
+show("map")
+}
+
+// ===== FINAL =====
+function endGame(){
+document.getElementById("finalScore").innerText=
+"Puntuación: "+state.score+" / "+zones.length
+
+show("final")
+}
+
 </script>
 
 </body>
