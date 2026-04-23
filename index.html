@@ -1,317 +1,196 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Planeta Ecosistema PRO</title>
+<title>Planeta Ecosistema</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/lucide@latest"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&family=Fredoka+One&display=swap" rel="stylesheet">
 
 <style>
 body{
-  margin:0;
-  font-family:sans-serif;
-  background:#020617;
+  font-family:'Nunito',sans-serif;
+  background:linear-gradient(135deg,#0f172a,#1e293b,#065f46);
+  background-size:400% 400%;
+  animation: bg 15s infinite;
   color:white;
 }
+@keyframes bg{
+0%,100%{background-position:0%}
+50%{background-position:100%}
+}
+.font-title{font-family:'Fredoka One',cursive}
 
-/* fondo */
-body::before{
-  content:"";
-  position:fixed;
-  width:100%;
-  height:100%;
-  background:radial-gradient(circle,#0b1f3a,#020617);
-  z-index:-1;
-}
-
-/* pantallas */
-.screen{
-  display:none;
-  height:100vh;
-  justify-content:center;
-  align-items:center;
-  flex-direction:column;
-  text-align:center;
-}
-.active{display:flex}
-
-/* planeta */
-.earth{
-  width:220px;
-  height:220px;
-  border-radius:50%;
-  background:url("https://eoimages.gsfc.nasa.gov/images/imagerecords/57000/57730/land_ocean_ice_2048.png");
-  background-size:cover;
-  animation:spin 40s linear infinite;
-}
-@keyframes spin{
-  from{background-position:0}
-  to{background-position:1000px}
-}
-
-/* mapa */
-.map{
-  width:350px;
-  height:350px;
-  border-radius:50%;
-  background:#065f46;
-  position:relative;
-}
-
-/* zonas */
-.zone{
-  position:absolute;
-  width:60px;
-  height:60px;
-  border-radius:50%;
-  background:#064e3b;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  cursor:pointer;
-  border:2px solid #10b981;
-}
-.locked{opacity:0.3;pointer-events:none}
-
-/* nave */
-.ship{
-  position:absolute;
-  font-size:24px;
-  transition:1s;
-}
-
-/* pregunta */
-.box{
-  background:#0f172a;
-  padding:20px;
-  border-radius:10px;
-  max-width:450px;
-}
-
-.option{
-  margin:10px;
-  padding:10px;
-  background:#1e293b;
-  border-radius:8px;
-  cursor:pointer;
-}
-.option.correct{background:#16a34a}
-.option.wrong{background:#dc2626}
-
-/* input */
-input{
-  padding:10px;
-  border-radius:6px;
-  border:none;
-  width:80%;
-}
-
-/* barra */
-.progress{
-  position:absolute;
-  top:20px;
-  width:200px;
-  height:10px;
-  background:#1e293b;
-}
-.bar{
-  height:100%;
-  width:0%;
-  background:#10b981;
-}
-
-/* botones */
-.btn{
-  margin-top:15px;
-  padding:10px 20px;
-  background:#10b981;
-  border:none;
-  border-radius:8px;
-  cursor:pointer;
-}
+.correct{background:#047857 !important}
+.wrong{background:#991b1b !important}
 </style>
 </head>
 
-<body>
+<body class="h-screen flex flex-col">
 
 <!-- INTRO -->
-<div id="intro" class="screen active">
-<div class="earth"></div>
-<h1>🌍 Planeta Ecosistema</h1>
-<p>Restaura el equilibrio del planeta superando cada zona.</p>
-<button class="btn" onclick="start()">🚀 Empezar</button>
+<div id="intro" class="flex flex-col items-center justify-center h-full text-center">
+<h1 class="font-title text-5xl text-emerald-300 mb-4">🌍 Planeta Ecosistema</h1>
+<p class="mb-6">Restaura el equilibrio del planeta</p>
+<button onclick="start()" class="bg-emerald-500 px-6 py-3 rounded-xl font-bold">🚀 Empezar</button>
 </div>
 
 <!-- MAPA -->
-<div id="map" class="screen">
-<div class="progress"><div class="bar" id="bar"></div></div>
+<div id="map" class="hidden p-6 text-center">
+<h2 class="font-title text-3xl mb-4">Mapa del planeta</h2>
 
-<div class="map">
-<div class="ship" id="ship">🚀</div>
+<div id="zones" class="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-xl mx-auto"></div>
 
-<div class="zone" onclick="openQ(0)" style="top:10px;left:140px">🌱</div>
-<div id="z1" class="zone locked" onclick="openQ(1)" style="top:80px;left:260px">🌡️</div>
-<div id="z2" class="zone locked" onclick="openQ(2)" style="top:220px;left:220px">🔗</div>
-<div id="z3" class="zone locked" onclick="openQ(3)" style="top:220px;left:60px">🌿</div>
-<div id="z4" class="zone locked" onclick="openQ(4)" style="top:80px;left:20px">🔺</div>
-<div id="z5" class="zone locked" onclick="openQ(5)" style="top:150px;left:140px">🌍</div>
-
-</div>
+<p id="score" class="mt-4"></p>
 </div>
 
-<!-- PREGUNTAS -->
-<div id="game" class="screen">
-<div class="box">
-<h3 id="question"></h3>
-<img id="img" style="max-width:100%;display:none;border-radius:8px">
+<!-- ZONA -->
+<div id="zone" class="hidden p-6 max-w-xl mx-auto">
+<button onclick="back()">⬅ Volver</button>
+<h2 id="title" class="font-title text-2xl my-4"></h2>
 
-<div id="answers"></div>
-
-<div id="openBox" style="display:none">
-<input id="openInput" placeholder="Escribe tu respuesta">
-<button class="btn" onclick="checkOpen()">Responder</button>
-</div>
-
-<button class="btn" onclick="back()">⬅ Volver</button>
-</div>
+<div id="question"></div>
+<div id="options" class="mt-4 space-y-2"></div>
+<div id="feedback" class="mt-4"></div>
 </div>
 
 <!-- FINAL -->
-<div id="end" class="screen">
-<h1>🏆 MISIÓN COMPLETADA</h1>
-<p id="scoreText"></p>
-<button class="btn" onclick="location.reload()">🔄 Jugar otra vez</button>
+<div id="end" class="hidden flex flex-col items-center justify-center h-full">
+<h1 class="text-4xl text-yellow-300 mb-4">🏆 ¡Completado!</h1>
+<p id="final"></p>
+<button onclick="location.reload()" class="bg-emerald-500 px-6 py-3 rounded-xl mt-4">Reiniciar</button>
 </div>
 
 <script>
-
-let current=0;
-let unlocked=[true,false,false,false,false,false];
 let score=0;
-let progress=0;
+let current=-1;
+let completed=[];
 
-/* DATOS */
-const data=[
-{q:"¿Qué es un ecosistema?",a:["Solo seres vivos","Seres vivos + medio + relaciones","Clima"],c:1},
-{q:"¿Factor abiótico?",a:["Planta","Agua","Animal"],c:1,img:"https://cdn.pixabay.com/photo/2016/11/29/09/32/water-1867618_1280.jpg"},
-{q:"Relación depredador?",type:"open",correct:["depredación"]},
-{q:"Inicio cadena?",a:["Consumidor","Productor","Descomponedor"],c:1,img:"https://cdn.pixabay.com/photo/2017/01/20/00/30/food-chain-1992855_1280.png"},
-{q:"Energía?",a:["Aumenta","Disminuye","Igual"],c:1},
-{q:"Acción humana positiva?",type:"open",correct:["reforestar","reciclar"]}
+const zones=[
+{
+title:"Ecosistema",
+q:"¿Qué es un ecosistema?",
+options:["Solo seres vivos","Seres vivos + medio + relaciones","Clima"],
+correct:1,
+feedback:"Incluye seres vivos, medio físico y relaciones."
+},
+{
+title:"Factores",
+q:"¿El agua es?",
+options:["Biótico","Abiótico","Ninguno"],
+correct:1,
+feedback:"El agua no tiene vida."
+},
+{
+title:"Relaciones",
+q:"¿Relación depredador?",
+options:["Mutualismo","Depredación","Comensalismo"],
+correct:1,
+feedback:"Uno se come al otro."
+},
+{
+title:"Cadena",
+q:"Orden correcto",
+options:["Consumidor→Productor","Productor→Consumidor","Descomponedor→Productor"],
+correct:1,
+feedback:"Siempre empieza en productor."
+},
+{
+title:"Pirámide",
+q:"La energía...",
+options:["Aumenta","Disminuye","Igual"],
+correct:1,
+feedback:"Se pierde energía."
+},
+{
+title:"Impacto",
+q:"¿Qué daña ecosistemas?",
+options:["Reservas","Deforestación","Reforestación"],
+correct:1,
+feedback:"Destruye hábitats."
+}
 ];
 
 function show(id){
-document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
-document.getElementById(id).classList.add("active");
+["intro","map","zone","end"].forEach(s=>document.getElementById(s).classList.add("hidden"));
+document.getElementById(id).classList.remove("hidden");
 }
 
 function start(){
+renderMap();
 show("map");
-moveShip(0);
 }
 
-function openQ(n){
-if(!unlocked[n]) return;
-current=n;
-load();
-show("game");
-}
-
-function load(){
-let q=data[current];
-
-document.getElementById("question").innerText=q.q;
-
-/* imagen */
-let img=document.getElementById("img");
-if(q.img){
-img.src=q.img;
-img.style.display="block";
-}else img.style.display="none";
-
-/* reset */
-document.getElementById("answers").innerHTML="";
-document.getElementById("openBox").style.display="none";
-
-/* tipo */
-if(q.type==="open"){
-document.getElementById("openBox").style.display="block";
-}else{
+function renderMap(){
 let html="";
-q.a.forEach((op,i)=>{
-html+=`<div class="option" onclick="check(${i})">${op}</div>`;
+zones.forEach((z,i)=>{
+let unlocked=i===0||completed.includes(i-1);
+html+=`
+<button onclick="enter(${i})" 
+class="p-4 rounded-xl border ${unlocked?'bg-slate-700':'bg-slate-900 opacity-40'}">
+${z.title}
+</button>`;
 });
-document.getElementById("answers").innerHTML=html;
-}
-}
-
-function check(i){
-let q=data[current];
-let ops=document.querySelectorAll(".option");
-
-if(i===q.c){
-ops[i].classList.add("correct");
-win();
-}else{
-ops[i].classList.add("wrong");
-alert("❌ Incorrecto");
-}
+document.getElementById("zones").innerHTML=html;
+document.getElementById("score").innerText="Puntuación: "+score;
 }
 
-function checkOpen(){
-let q=data[current];
-let val=document.getElementById("openInput").value.toLowerCase();
+function enter(i){
+if(i!==0 && !completed.includes(i-1)) return;
 
-let ok=q.correct.some(k=>val.includes(k));
+current=i;
+let z=zones[i];
 
-if(ok){
-win();
-}else{
-alert("❌ Revisa tu respuesta");
+document.getElementById("title").innerText=z.title;
+document.getElementById("question").innerText=z.q;
+
+let opts="";
+z.options.forEach((o,idx)=>{
+opts+=`<div class="p-3 bg-slate-700 rounded-xl cursor-pointer"
+onclick="answer(${idx})">${o}</div>`;
+});
+document.getElementById("options").innerHTML=opts;
+document.getElementById("feedback").innerHTML="";
+
+show("zone");
 }
-}
 
-function win(){
-alert("✅ ¡Correcto!");
+function answer(i){
+let z=zones[current];
+let buttons=document.querySelectorAll("#options div");
 
+buttons.forEach((b,idx)=>{
+if(idx===z.correct) b.classList.add("correct");
+if(idx===i && idx!==z.correct) b.classList.add("wrong");
+});
+
+if(i===z.correct){
 score++;
-progress++;
-updateBar();
-
-if(current<5){
-unlocked[current+1]=true;
-document.getElementById("z"+(current+1)).classList.remove("locked");
-moveShip(current+1);
+setTimeout(()=>{
+completed.push(current);
+if(completed.length===6){
+end();
 }else{
-endGame();
-}
-
+renderMap();
 show("map");
 }
-
-function updateBar(){
-document.getElementById("bar").style.width=(progress/6*100)+"%";
+},1000);
+}else{
+document.getElementById("feedback").innerText="❌ Incorrecto";
 }
-
-function moveShip(n){
-let zones=document.querySelectorAll(".zone");
-let ship=document.getElementById("ship");
-
-let r=zones[n].getBoundingClientRect();
-let m=document.querySelector(".map").getBoundingClientRect();
-
-ship.style.left=(r.left-m.left+15)+"px";
-ship.style.top=(r.top-m.top-10)+"px";
 }
 
 function back(){
 show("map");
 }
 
-function endGame(){
-document.getElementById("scoreText").innerText="Puntuación: "+score+"/6";
+function end(){
+document.getElementById("final").innerText="Puntuación: "+score+"/6";
 show("end");
 }
-
 </script>
 
 </body>
