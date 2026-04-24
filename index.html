@@ -9,15 +9,17 @@
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Fredoka+One&display=swap" rel="stylesheet">
 
 <style>
-body{
+html,body{
 margin:0;
+height:100%;
+background:#020617;
 font-family:'Nunito',sans-serif;
-background:radial-gradient(circle at center,#0f172a,#020617);
 color:white;
-overflow:hidden;
 }
 
-.font-title{font-family:'Fredoka One',cursive;}
+body{
+background: radial-gradient(circle at 20% 20%, #0f172a, #020617 80%);
+}
 
 .screen{
 position:absolute;
@@ -27,39 +29,73 @@ display:flex;
 flex-direction:column;
 align-items:center;
 justify-content:center;
+text-align:center;
+padding:20px;
 }
 
 .hidden{display:none}
 
+.title{
+font-family:'Fredoka One',cursive;
+font-size:38px;
+color:#34d399;
+}
+
 .btn{
 background:#10b981;
-padding:12px 20px;
+color:#022c22;
+padding:12px 18px;
 border-radius:12px;
 cursor:pointer;
-font-weight:bold;
 margin-top:10px;
+font-weight:bold;
+border:none;
 }
+
+.btn:hover{background:#34d399;}
 
 .planet{
 position:absolute;
+width:70px;
+height:70px;
 border-radius:50%;
+display:flex;
+align-items:center;
+justify-content:center;
 cursor:pointer;
+font-size:24px;
+background: radial-gradient(circle, #34d399, #065f46);
+box-shadow:0 0 20px rgba(16,185,129,0.6);
 transition:0.3s;
 }
 
-.planet:hover{transform:scale(1.2)}
+.planet:hover{transform:scale(1.2);}
+.locked{filter:grayscale(1);opacity:0.3;cursor:not-allowed;}
 
-.locked{filter:grayscale(1);opacity:0.4}
+.box{
+background:rgba(15,23,42,0.8);
+border:1px solid #334155;
+padding:15px;
+border-radius:12px;
+margin:10px 0;
+width:100%;
+max-width:600px;
+}
 
-.correct{background:#047857!important}
-.wrong{background:#991b1b!important}
+.correct{background:#065f46!important;}
+.wrong{background:#7f1d1d!important;}
 
 textarea{
 width:100%;
-height:80px;
 border-radius:10px;
 padding:10px;
 color:black;
+}
+
+img{
+max-width:300px;
+border-radius:12px;
+margin:10px;
 }
 </style>
 </head>
@@ -68,111 +104,119 @@ color:black;
 
 <!-- INTRO -->
 <div id="intro" class="screen">
-<h1 class="font-title" style="font-size:40px">🌍 Planeta Ecosistema</h1>
+<h1 class="title">🌍 Planeta Ecosistema</h1>
 <p>Misión de supervivencia</p>
 <button class="btn" onclick="startGame()">🚀 Iniciar</button>
 </div>
 
 <!-- MAPA -->
 <div id="map" class="screen hidden">
-
-<div id="space"></div>
-
-<button class="btn" style="position:absolute;bottom:20px" onclick="copyAnswers()">
-📋 Copiar respuestas
-</button>
-
+<div id="space" style="position:relative;width:100%;height:80%"></div>
+<button class="btn" onclick="copyAnswers()">📋 Copiar respuestas</button>
 </div>
 
 <!-- ZONA -->
-<div id="zone" class="screen hidden" style="padding:20px">
-
+<div id="zone" class="screen hidden">
 <h2 id="zoneTitle"></h2>
-<img id="zoneImg" style="max-width:300px;border-radius:12px">
+<img id="zoneImg">
 
+<div class="box">
 <p id="q1"></p>
 <div id="options"></div>
 <p id="fb1"></p>
+</div>
 
-<div id="q2block" class="hidden">
+<div id="q2block" class="box hidden">
 <p id="q2"></p>
 <textarea id="input"></textarea>
 <button class="btn" onclick="answerQ2()">Responder</button>
 <p id="fb2"></p>
 </div>
 
-<button id="finish" class="btn hidden" onclick="finishZone()">Volver</button>
-
+<button id="finish" class="btn hidden" onclick="finishZone()">Volver al mapa</button>
 </div>
 
 <!-- FINAL -->
 <div id="final" class="screen hidden">
-<h1 class="font-title">🏆 ¡Ecosistema restaurado!</h1>
+<h1 class="title">🏆 ¡Ecosistema restaurado!</h1>
 <div id="summary"></div>
 <button class="btn" onclick="location.reload()">Reiniciar</button>
 </div>
 
 <script>
 
-let state={
-current:-1,
-completed:[],
-answers:{}
-}
+let state={current:-1,completed:[],answers:{}}
 
-// 6 ZONAS
+// 🌍 TODAS LAS ZONAS COMPLETAS
 const zones=[
+
+// 1 ECOSISTEMA
 {
 title:"Ecosistema",
 img:"https://upload.wikimedia.org/wikipedia/commons/6/68/Ecosystem.jpg",
-q1:"¿Qué es un ecosistema?",
-options:["Seres vivos","Todo el sistema completo","Clima"],
+q1:"¿Qué incluye un ecosistema?",
+options:["Solo seres vivos","Seres vivos + medio + relaciones","Solo clima"],
 correct:1,
-q2:"Define ecosistema"
+q2:`1. Define ecosistema  
+2. Indica biótico o abiótico:
+- Agua
+- Planta
+- Temperatura
+- Bacteria`
 },
+
+// 2 FACTORES
 {
 title:"Factores abióticos",
 img:"https://upload.wikimedia.org/wikipedia/commons/3/3f/Temperature_graph.png",
-q1:"Zona óptima es:",
-options:["Donde mueren","Donde viven mejor","Máximo calor"],
+q1:"Zona óptima es donde:",
+options:["Mueren","Mejor viven","Máximo calor"],
 correct:1,
-q2:"¿Qué pasa fuera del rango?"
+q2:"¿Qué ocurre fuera del rango de tolerancia?"
 },
+
+// 3 RELACIONES
 {
 title:"Relaciones",
 img:"https://upload.wikimedia.org/wikipedia/commons/3/3a/Mutualism.jpg",
 q1:"Mutualismo:",
 options:["Uno pierde","Ambos ganan","Nadie gana"],
 correct:1,
-q2:"Pon ejemplo"
+q2:"Explica depredación, parasitismo y mutualismo"
 },
+
+// 4 CADENAS
 {
-title:"Cadena trófica",
+title:"Cadenas tróficas",
 img:"https://upload.wikimedia.org/wikipedia/commons/1/11/Food_chain.svg",
 q1:"Orden correcto:",
 options:["Productor primero","Consumidor primero","Descomponedor primero"],
 correct:0,
-q2:"¿Qué pasa si falta uno?"
+q2:"¿Qué pasa si desaparece un eslabón?"
 },
+
+// 5 PIRÁMIDE
 {
-title:"Pirámide",
+title:"Pirámide trófica",
 img:"https://upload.wikimedia.org/wikipedia/commons/e/e4/Ecological_pyramid.svg",
-q1:"Energía:",
-options:["Aumenta","Disminuye","Igual"],
+q1:"La energía:",
+options:["Aumenta","Disminuye","Se mantiene"],
 correct:1,
-q2:"¿Por qué?"
+q2:"Explica por qué hay menos depredadores"
 },
+
+// 6 IMPACTO
 {
 title:"Impacto humano",
 img:"https://upload.wikimedia.org/wikipedia/commons/5/5f/Deforestation.jpg",
-q1:"Daño ambiental:",
+q1:"¿Qué destruye ecosistemas?",
 options:["Reforestar","Deforestar","Reciclar"],
 correct:1,
-q2:"Propuesta ecológica"
+q2:"Propón una acción para proteger el entorno"
 }
 ]
 
-// CAMBIAR PANTALLA
+// CAMBIO PANTALLA
 function show(id){
 ["intro","map","zone","final"].forEach(s=>{
 document.getElementById(s).classList.add("hidden")
@@ -186,29 +230,22 @@ renderMap()
 show("map")
 }
 
-// MAPA PLANETA
+// MAPA
 function renderMap(){
 let space=document.getElementById("space")
 space.innerHTML=""
 
 zones.forEach((z,i)=>{
-
-let unlocked = i===0 || state.completed.includes(i-1)
-let done = state.completed.includes(i)
+let unlocked=i===0||state.completed.includes(i-1)
+let done=state.completed.includes(i)
 
 let p=document.createElement("div")
 p.className="planet "+(unlocked?"":"locked")
-p.style.width="60px"
-p.style.height="60px"
-p.style.background="radial-gradient(circle,#10b981,#065f46)"
-p.style.left=(100+ i*120)+"px"
-p.style.top=(150+ Math.sin(i)*80)+"px"
-
+p.style.left=(10+i*14)+"%"
+p.style.top=(20+(i%2)*30)+"%"
 p.innerHTML=done?"✅":"🌍"
 
-if(unlocked && !done){
-p.onclick=()=>enterZone(i)
-}
+if(unlocked&&!done){p.onclick=()=>enterZone(i)}
 
 space.appendChild(p)
 })
@@ -217,13 +254,12 @@ space.appendChild(p)
 // ENTRAR ZONA
 function enterZone(i){
 
-// RESET
-options.innerHTML=""
-fb1.innerHTML=""
-fb2.innerHTML=""
-input.value=""
-q2block.classList.add("hidden")
-finish.classList.add("hidden")
+document.getElementById("options").innerHTML=""
+document.getElementById("fb1").innerHTML=""
+document.getElementById("fb2").innerHTML=""
+document.getElementById("input").value=""
+document.getElementById("q2block").classList.add("hidden")
+document.getElementById("finish").classList.add("hidden")
 
 state.current=i
 let z=zones[i]
@@ -250,7 +286,7 @@ let btns=options.children
 
 for(let j=0;j<btns.length;j++){
 if(j===z.correct)btns[j].classList.add("correct")
-if(j===i && j!==z.correct)btns[j].classList.add("wrong")
+if(j===i&&j!==z.correct)btns[j].classList.add("wrong")
 }
 
 if(i===z.correct){
@@ -266,15 +302,15 @@ fb1.innerText="❌ Incorrecto"
 
 // RESPUESTA ABIERTA
 function answerQ2(){
-let txt=input.value
+let txt=input.value||"(sin respuesta)"
 
 state.answers["Zona "+(state.current+1)+" Abierta"]=txt
 
-fb2.innerText="Guardado"
+fb2.innerText="Respuesta guardada"
 finish.classList.remove("hidden")
 }
 
-// FINALIZAR ZONA
+// FINALIZAR
 function finishZone(){
 state.completed.push(state.current)
 
@@ -307,7 +343,7 @@ txt+=k+":\n"+state.answers[k]+"\n\n"
 }
 
 navigator.clipboard.writeText(txt)
-alert("Copiado")
+alert("Copiado 👍")
 }
 
 </script>
