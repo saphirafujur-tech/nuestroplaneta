@@ -310,9 +310,26 @@ function endGame(){
   document.getElementById("score").innerText="Puntuación: "+score+" / 6";
 }
 
-function copyResults(){
-  navigator.clipboard.writeText(answers.join("\n"));
-  alert("Copiado 👍");
+function copyResults() {
+  let texto = "EVALUACIÓN ECOSISTEMAS\n\n";
+  texto += "RESPUESTAS:\n\n";
+  texto += answers.join("\n");
+
+  const textarea = document.createElement("textarea");
+  textarea.value = texto;
+  document.body.appendChild(textarea);
+
+  textarea.select();
+  textarea.setSelectionRange(0, 99999);
+
+  try {
+    document.execCommand("copy");
+    alert("📋 Respuestas copiadas correctamente");
+  } catch (err) {
+    alert("❌ No se pudo copiar automáticamente. Selecciona y copia manualmente.");
+  }
+
+  document.body.removeChild(textarea);
 }
 </script>
 
