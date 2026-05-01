@@ -150,12 +150,15 @@ textarea{
   <h1>🏆 Ecosistema restaurado</h1>
   <p id="score" class="score"></p>
   <button onclick="copyResults()">📋 Copiar respuestas</button>
+  
 </div>
 
 <script>
 let current=0;
 let score=0;
+let totalTest=8;
 let answers=[];
+let respuestasAbiertas=[];
 
 const zones=[
 {
@@ -287,7 +290,13 @@ function answerOpen(z,q){
 
   answers.push(zones[z].questions[q].text+" → "+txt);
   next(z,q);
+  respuestasAbiertas.push(
+  "Zona " + (z+1) + " - " +
+  zones[z].questions[q].text +
+  " → " + txt
+);
 }
+  
 
 function next(z,q){
   if(q+1<zones[z].questions.length){
@@ -307,7 +316,13 @@ function next(z,q){
 
 function endGame(){
   document.getElementById("final").style.display="block";
-  document.getElementById("score").innerText="Puntuación: "+score+" / 6";
+  let nota=(score/totalTest)*10;
+
+document.getElementById("score").innerText =
+"Aciertos test: " + score + " / " + totalTest;
+
+document.getElementById("grade").innerText =
+"Nota automática: " + nota.toFixed(1) + " / 10";
 }
 
 function copyResults() {
@@ -330,6 +345,30 @@ function copyResults() {
   }
 
   document.body.removeChild(textarea);
+}
+  function copyResults() {
+
+  let texto = "EVALUACIÓN ECOSISTEMAS\n\n";
+
+  texto += "TEST AUTOMÁTICO:\n";
+  texto += "Aciertos: " + score + " / " + totalTest + "\n";
+  texto += "Nota: " + ((score/totalTest)*10).toFixed(1) + "/10\n\n";
+
+  texto += "RESPUESTAS ABIERTAS:\n\n";
+  texto += respuestasAbiertas.join("\n");
+
+  const textarea = document.createElement("textarea");
+  textarea.value = texto;
+  document.body.appendChild(textarea);
+
+  textarea.select();
+  textarea.setSelectionRange(0,99999);
+
+  document.execCommand("copy");
+
+  document.body.removeChild(textarea);
+
+  alert("📋 Respuestas copiadas");
 }
 </script>
 
